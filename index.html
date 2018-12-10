@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <main class="creator-main-container">
+        <nav class="creator-main-nav">
+            <div class="creator-nav-button" @click="currentTab = 'construct'">Конструктор</div>
+            <div class="creator-nav-button" @click="currentTab = 'result'">Результат</div>
+        </nav>
+        <div class="creator-tabs-container">
+            <div class="creator-tab tab-left" :class="{ 'tab-hidden': currentTab === 'result' }">
+                <form action="">
+                    <label for="title">Название ДПП</label><input type="text" name="title" v-model="title">
+                    <label for="authors">Автор/Авторский коллектив</label><input type="text" name="authors" v-model="authors">
+                    <div class="row">
+                        <div class="col">
+                            <label for="coordPosition">Должность согласующего</label><input type="text" name="coordPosition" v-model="coordPosition">
+                        </div>
+                        <div class="gap"></div>
+                        <div class="col">
+                            <label for="coordName">ФИО согласующего</label><input type="text" name="coordName" v-model="coordName">
+                        </div>
+                    </div>
+                    <label for="relevance">Актуальность программы</label>
+                    <textarea id="relevance" v-model="relevance" rows="6"></textarea>
+                    <label for="target">Цель</label>
+                    <textarea id="target" v-model="target" rows="2"></textarea>
+                    <label for="studentsCategory">Категория обучающихся (слушателей)</label>
+                    <select name="studentsCategory">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <label for="learningForm">Форма обучения</label>
+                    <select name="learningForm">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                    </select>
+                    <div class="row">
+                        <div class="col">
+                            <label for="">Режим аудиторных занятий – <input class="hours" type="number" name=""> часов в день</label>
+                        </div>
+                        <div class="gap"></div>
+                        <div class="col">
+                            <label for="">Срок освоения программы – <input class="hours" type="number" name=""> часа(ов)</label>
+                        </div>
+                    </div>
+                    
+                    <section class="modules">
+                        <h3>Модули/разделы</h3>
+                        <br>
+                        <ul>
+                            <li class="module" v-for="module in modules" :key="module.index">
+                                {{ module.index + 1 }}. {{ module.data.title }}
+                                <ul>
+                                    <li class="theme" v-for="theme in module.themes" :key="theme.index">
+                                        {{ module.index + 1 }}.{{ theme.data.index }}. {{ theme.data.title }}
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </section>
+                </form>
+            </div>
+            <div class="creator-tab tab-result" :class="{ 'tab-hidden': currentTab === 'construct' }">
+                <section class="result">
+                    <br><br>
+                    <h2 style="text-align:center;">МИНИСТЕРСТВО ОБРАЗОВАНИЯ МОСКОВСКОЙ ОБЛАСТИ</h2><br>
+                    <h3 style="text-align:center;">Государственное бюджетное образовательное учреждение<br>
+                    высшего образования Московской области<br>
+                    «Академия социального управления»</h3><br><br>
+                    <h3 style="text-align:center;">Кафедра информационно-коммуникационных технологий</h3>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <h2 style="text-align:center;">Дополнительная профессиональная программа<br>
+                        (повышение квалификации)<br>
+                        {{ this.title }}
+                    </h2>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                    <br>
+                </section>
+            </div>
+        </div>
+        <footer class="creator-main-actions">
+            <span class="button" @click="newModuleAdd()" v-if="currentTab === 'construct'">Добавить раздел/модуль</span>
+            <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
+        </footer>
+        <section class="modal" :class="{ 'modal-hidden': !moduleAddModalVisible }">
+            <div class="modal-body" :class="{ 'modal-body-darken': themeAddVisible }">
+                <header>
+                    <div class="left"></div>
+                    <div class="title"><h3>Добавление раздела/модуля</h3></div>
+                    <div class="right">
+                        <span class="close" @click="moduleAddModalVisible = false">&times;</span>
+                    </div>
+                </header>
+                <main>
+                    <form action="">
+                        <label>Наименование раздела/модуля</label><input type="text" v-model="curModule.data.title">
+                        <section class="theme-add" v-if="themeAddVisible">
+                            <header>
+                                <div class="left"></div>
+                                <div class="title"><h3>Добавление темы</h3></div>
+                                <div class="right">
+                                    <span class="close" @click="themeAddVisible = false">&times;</span>
+                                </div>
+                            </header>
+                            <main>
+                                <label>Наименование темы</label><input type="text" v-model="curTheme.data.title">
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Общая трудоемкость</label><input type="number">
+                                    </div>
+                                    <div class="gap"></div>
+                                    <div class="col">
+                                        <label>Трудоемкость для ППС</label><input type="number">
+                                    </div>
+                                </div>
+                                <br>
+                                <h3><i>Аудиторные учебные занятия:</i></h3>
+                                <br>
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Лекции</label><input type="number">
+                                    </div>
+                                    <div class="gap"></div>
+                                    <div class="col">
+                                        <label>Интерактивные занятия</label><input type="number">
+                                    </div>
+                                </div>
+                                <br>
+                                <h3><i>Внеаудиторные учебные занятия:</i></h3>
+                                <br>
+                                <div class="row">
+                                    <div class="col">
+                                        <label>Теоритическая часть</label><input type="number">
+                                    </div>
+                                    <div class="gap"></div>
+                                    <div class="col">
+                                        <label>Практическая часть</label><input type="number">
+                                    </div>
+                                </div>
+                                <label for="forms">Формы контроля</label>
+                                <textarea id="forms" rows="2"></textarea>
+                                <label for="content">Содержание темы</label>
+                                <textarea id="content" rows="5"></textarea>
+                            </main>
+                            <footer>
+                                <span class="button" @click="newThemeSave()">Сохранить</span>
+                            </footer>
+                        </section>
+                    </form>
+                </main>
+                <footer>
+                    <span class="button" @click="newModuleSave()">Сохранить</span>
+                    <span class="button" @click="newThemeAdd()">Добавить тему</span>
+                </footer>
+            </div>
+        </section>
+    </main>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let creator = new Vue({
+                el: '.creator-main-container',
+                data: {
+                    currentTab: 'construct',
+                    moduleAddModalVisible: false,
+                    themeAddVisible: false,
+                    title: '',
+                    authors: '',
+                    coordPosition: '',
+                    coordName: '',
+                    relevance: '1.1.1. Нормативную правовую основу разработки программы составляют: (приводятся ссылки на нормативно - правовые документы с указанием соответствующих разделов, пунктов, подпунктов, конкретного содержания данных разделов). 1.1.2.Дополнительная профессиональная программа повышения квалификации «Название программы» разработана на основе профессиональных стандартов (квалификационных требований)(Приводится наименование профессионального стандарта, который использовался при разработке программы (http://profstandart.rosmintrud.ru/reestr-professionalnyh-standartov).При отсутствии профессионального стандарта приводится наименование соответствующего раздела Единого квалификационного справочника должностей руководителей, специалистов и служащих (ЕКС) - http://profstandart.rosmintrud.ru/eksd), либо ФГОС ВО по соответствующему направлению подготовки http://www.edu.ru/abitur/act.82/index.php#Par768',
+                    target: '1.2. Цель - совершенствование и (или) получение новой(ых) компетенции(й), необходимой(ых) для профессиональной деятельности, и(или) повышение профессионального уровня в рамках имеющейся квалификации и в соответствии с профессиональными стандартами.',
+                    modules: [],
+                    curModule: {
+                        index: null,
+                        data: {
+                            title: '',
+                            themes: []
+                        }
+                    },
+                    curTheme: {
+                        index: null,
+                        data: {
+                            title: ''
+                        }
+                    }
+                },
+                computed: {
+
+                },
+                methods: {
+                    newModuleAdd() {
+                        this.curModule.data.title = '';
+                        this.curModule.index = this.modules.length;
+                        this.moduleAddModalVisible = true;
+                    },
+                    newModuleSave() {
+                        let found = this.modules.some(module => {
+                            return module.index === this.curModule.index;
+                        });
+                        if (!found) {
+                            let tmp = JSON.parse(JSON.stringify(this.curModule));
+                            console.log(tmp);
+                            this.modules.push(tmp);
+                        }
+                    },
+                    newThemeAdd() {
+                        this.curTheme.data.title = '';
+                        this.curTheme.index = this.curModule.data.themes.length;
+                        this.themeAddVisible = true;
+                    },
+                    newThemeSave() {
+                        let found = this.curModule.data.themes.some(theme => {
+                            return theme.index === this.curTheme.index;
+                        });
+                        if (!found) {
+                            let tmp = JSON.parse(JSON.stringify(this.curTheme));
+                            console.log(tmp);
+                            this.curModule.data.themes.push(tmp);
+                        }
+                    },
+                    exportToDoc() {
+                        let preHtml = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+                        let postHtml = "</body></html>";
+                        let html = preHtml + document.querySelector('.result').innerHTML + postHtml;
+                        let blob = new Blob(['\ufeff', html], {
+                            type: 'application/msword'
+                        });
+                        let url = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(html);
+                        filename = 'document.doc';
+                        let downloadLink = document.createElement('a');
+                        document.body.appendChild(downloadLink);
+                        if (navigator.msSaveOrOpenBlob) {
+                            navigator.msSaveOrOpenBlob(blob, filename);
+                        } else {
+                            downloadLink.href = url;
+                            downloadLink.download = filename;
+                            downloadLink.click();
+                        }
+                        document.body.removeChild(downloadLink);
+                    },
+                }
+            });
+        });
+    </script>
+
+
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', 'Open Sans', 'Trebuchet MS', 'Verdana', 'Tahoma', sans-serif;
+            font-size: 15px;
+        }
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+        li {
+            padding-left: 15px;
+        }
+        .button {
+            background-color: #da251d;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 5px 15px;
+            margin-right: 25px;
+            transition: background-color 0.1s;
+        }
+        .button:hover {
+            background-color: #3088b8;
+        }
+        .creator-main-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 900px;
+            width: 1280px;
+            min-width: 1280px;
+            background: url(http://project4stroy.nd.ru/download_file.html?file_id=6567179274595081388) no-repeat #f2f2f2 0% 100%;
+        }
+        .creator-main-nav,
+        .creator-main-actions {
+            display: flex;
+            width: 100%;
+        }
+        .creator-main-nav {
+            height: 40px;
+        }
+        .creator-main-actions {
+            height: 50px;
+            background: #ffffff;
+            padding: 10px 15px;
+        }
+        .creator-nav-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            cursor: pointer;
+            transition: background-color 0.18s;
+        }
+        .creator-nav-button:hover {
+            background: #dfdfdf;
+        }
+        .creator-tabs-container {
+            display: flex;
+            flex: 1;
+        }
+        .creator-tab {
+            min-height: 100%;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px;
+        }
+        .creator-tab .result {
+            padding: 30px;
+        }
+        .creator-tab .result * {
+            font-family: 'Times New Roman', serif;
+        }
+        .creator-tab.tab-hidden {
+            display: none;
+        }
+        form label {
+            display: block;
+            width: 100%;
+        }
+        form input,
+        form select,
+        form textarea {
+            background-color: #ffffff;
+            border: 1px solid #c9ccd4;
+            margin: 7px 0;
+            border-radius: 2px;
+            padding: 3px 6px;
+            box-shadow: inset 0 1px 3px #dddddd;
+        }
+        form input,
+        form textarea {
+            width: 100%;
+        }
+        form textarea {
+            resize: vertical;
+        }
+        form input.hours {
+            width: 80px;
+        }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            margin: 0;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield;
+        }
+        .row {
+            width: 100%;
+            display: flex;
+        }
+        .row .col {
+            flex: 1;
+        }
+        .row .gap {
+            width: 15px;
+        }
+        .modal {
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal .modal-body {
+            position: relative;
+            background-color: #fefefe;
+            margin: 30px auto 0 auto;
+            padding: 0 15px;
+            border: 1px solid rgb(172, 172, 172);
+            width: 1200px;
+            height: 90%;
+        }
+        /* .modal .modal-body .modal-body-darken {
+            pointer-events: none;
+            position: relative;
+        }
+        .modal .modal-body.modal-body-darken::before {
+            content: '';
+            display: block;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0,0,0,0.4);
+        } */
+        .modal .modal-body header,
+        .modal .modal-body footer {
+            display: flex;
+            height: 40px;
+        }
+        .modal .modal-body header {
+            border-bottom: 1px solid #aaa;
+        }
+        .modal .modal-body footer {
+            padding: 5px 15px;
+            border-top: 1px solid #aaa;
+        }
+        .modal .modal-body header .left,
+        .modal .modal-body header .right {
+            flex: 1;
+        }
+        .modal .modal-body header .title {
+            flex: 8;
+            width: 90%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal .modal-body header .close {
+            color: #da251d;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .modal .modal-body header .close:hover,
+        .modal .modal-body header .close:focus {
+            color: #3088b8;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .modal .modal-body main {
+            height: calc(100% - 80px);
+            padding: 15px 0;
+        }
+        .modal-hidden {
+            display: none;
+        }
+        .modules {
+            border-top: 1px solid #aaa;
+            padding-top: 10px;
+        }
+    </style>
+</body>
+
+</html>
