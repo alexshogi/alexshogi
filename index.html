@@ -17,13 +17,14 @@
             <div class="creator-nav-button" @click="currentTab = 'result'">Результат</div>
         </nav>
         <div class="creator-tabs-container">
-            <div class="creator-tab tab-left" :class="{ 'tab-hidden': currentTab === 'result' }">
+            <div class="creator-tab tab-construct" :class="{ 'tab-hidden': currentTab === 'result' }">
                 <form action="">
                     <label for="title">Название ДПП</label><input type="text" name="title" v-model="title">
                     <label for="authors">Автор/Авторский коллектив</label><input type="text" name="authors" v-model="authors">
                     <div class="row">
                         <div class="col">
-                            <label for="coordPosition">Должность согласующего</label><input type="text" name="coordPosition" v-model="coordPosition">
+                            <label for="coordPosition">Должность согласующего</label><input type="text" name="coordPosition"
+                                v-model="coordPosition">
                         </div>
                         <div class="gap"></div>
                         <div class="col">
@@ -48,37 +49,119 @@
                     </select>
                     <div class="row">
                         <div class="col">
-                            <label for="">Режим аудиторных занятий – <input class="hours" type="number" name=""> часов в день</label>
+                            <label for="">Режим аудиторных занятий – <input class="hours" type="number" name=""> часов
+                                в день</label>
                         </div>
                         <div class="gap"></div>
                         <div class="col">
-                            <label for="">Срок освоения программы – <input class="hours" type="number" name=""> часа(ов)</label>
+                            <label for="">Срок освоения программы – <input class="hours" type="number" name="">
+                                часа(ов)</label>
                         </div>
                     </div>
-                    
+
                     <section class="modules">
-                        <h3>Модули/разделы</h3>
+                        <h3>Модули/разделы {{ modules.length }}</h3>
                         <br>
-                        <ul>
+                        <ul v-if="modules.length">
                             <li class="module" v-for="module in modules" :key="module.index">
-                                {{ module.index + 1 }}. {{ module.data.title }}
+                                {{ module.index + 1 }}. {{ module.data.title }} ({{ module.data.themes.length }})
                                 <ul>
-                                    <li class="theme" v-for="theme in module.themes" :key="theme.index">
-                                        {{ module.index + 1 }}.{{ theme.data.index }}. {{ theme.data.title }}
+                                    <li class="theme" v-for="theme in module.data.themes" :key="theme.index">
+                                        {{ theme.index + 1 }}. {{ theme.data.title }}
                                     </li>
                                 </ul>
                             </li>
                         </ul>
                     </section>
+
+                    <section class="content-add module-add" v-if="moduleAddVisible">
+                        <header>
+                            <div class="left"></div>
+                            <div class="title">
+                                <h3>Добавление раздела/модуля</h3>
+                            </div>
+                            <div class="right">
+                                <span class="close" @click="moduleAddVisible = false">&times;</span>
+                            </div>
+                        </header>
+                        <main>
+                            <form action="">
+                                <label>Наименование раздела/модуля</label><input type="text" v-model="curModule.data.title">
+                                <section class="content-add theme-add" v-if="themeAddVisible">
+                                    <header>
+                                        <div class="left"></div>
+                                        <div class="title">
+                                            <h3>Добавление темы</h3>
+                                        </div>
+                                        <div class="right">
+                                            <span class="close" @click="themeAddVisible = false">&times;</span>
+                                        </div>
+                                    </header>
+                                    <main>
+                                        <label>Наименование темы</label><input type="text" v-model="curTheme.data.title">
+                                        <div class="row">
+                                            <div class="col">
+                                                <label>Общая трудоемкость</label><input type="number">
+                                            </div>
+                                            <div class="gap"></div>
+                                            <div class="col">
+                                                <label>Трудоемкость для ППС</label><input type="number">
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <h3><i>Аудиторные учебные занятия:</i></h3>
+                                        <br>
+                                        <div class="row">
+                                            <div class="col">
+                                                <label>Лекции</label><input type="number">
+                                            </div>
+                                            <div class="gap"></div>
+                                            <div class="col">
+                                                <label>Интерактивные занятия</label><input type="number">
+                                            </div>
+                                        </div>
+                                        <br>
+                                        <h3><i>Внеаудиторные учебные занятия:</i></h3>
+                                        <br>
+                                        <div class="row">
+                                            <div class="col">
+                                                <label>Теоритическая часть</label><input type="number">
+                                            </div>
+                                            <div class="gap"></div>
+                                            <div class="col">
+                                                <label>Практическая часть</label><input type="number">
+                                            </div>
+                                        </div>
+                                        <label for="forms">Формы контроля</label>
+                                        <textarea id="forms" rows="2"></textarea>
+                                        <label for="content">Содержание темы</label>
+                                        <textarea id="content" rows="5"></textarea>
+                                    </main>
+                                    <footer>
+                                        <span class="button" @click="newThemeSave()">Сохранить</span>
+                                    </footer>
+                                </section>
+                            </form>
+                        </main>
+                        <footer>
+                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="newModuleSave()">Сохранить</span>
+                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="newThemeAdd()">Добавить тему</span>
+                        </footer>
+                    </section>
                 </form>
+                <footer class="creator-main-actions">
+                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="newModuleAdd()" v-if="currentTab === 'construct'">Добавить
+                        раздел/модуль</span>
+                    <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
+                </footer>
             </div>
             <div class="creator-tab tab-result" :class="{ 'tab-hidden': currentTab === 'construct' }">
                 <section class="result">
                     <br><br>
                     <h2 style="text-align:center;">МИНИСТЕРСТВО ОБРАЗОВАНИЯ МОСКОВСКОЙ ОБЛАСТИ</h2><br>
                     <h3 style="text-align:center;">Государственное бюджетное образовательное учреждение<br>
-                    высшего образования Московской области<br>
-                    «Академия социального управления»</h3><br><br>
+                        высшего образования Московской области<br>
+                        «Академия социального управления»</h3><br><br>
                     <h3 style="text-align:center;">Кафедра информационно-коммуникационных технологий</h3>
                     <br>
                     <br>
@@ -99,84 +182,17 @@
                     <br>
                     <br>
                 </section>
-            </div>
-        </div>
-        <footer class="creator-main-actions">
-            <span class="button" @click="newModuleAdd()" v-if="currentTab === 'construct'">Добавить раздел/модуль</span>
-            <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
-        </footer>
-        <section class="modal" :class="{ 'modal-hidden': !moduleAddModalVisible }">
-            <div class="modal-body" :class="{ 'modal-body-darken': themeAddVisible }">
-                <header>
-                    <div class="left"></div>
-                    <div class="title"><h3>Добавление раздела/модуля</h3></div>
-                    <div class="right">
-                        <span class="close" @click="moduleAddModalVisible = false">&times;</span>
-                    </div>
-                </header>
-                <main>
-                    <form action="">
-                        <label>Наименование раздела/модуля</label><input type="text" v-model="curModule.data.title">
-                        <section class="theme-add" v-if="themeAddVisible">
-                            <header>
-                                <div class="left"></div>
-                                <div class="title"><h3>Добавление темы</h3></div>
-                                <div class="right">
-                                    <span class="close" @click="themeAddVisible = false">&times;</span>
-                                </div>
-                            </header>
-                            <main>
-                                <label>Наименование темы</label><input type="text" v-model="curTheme.data.title">
-                                <div class="row">
-                                    <div class="col">
-                                        <label>Общая трудоемкость</label><input type="number">
-                                    </div>
-                                    <div class="gap"></div>
-                                    <div class="col">
-                                        <label>Трудоемкость для ППС</label><input type="number">
-                                    </div>
-                                </div>
-                                <br>
-                                <h3><i>Аудиторные учебные занятия:</i></h3>
-                                <br>
-                                <div class="row">
-                                    <div class="col">
-                                        <label>Лекции</label><input type="number">
-                                    </div>
-                                    <div class="gap"></div>
-                                    <div class="col">
-                                        <label>Интерактивные занятия</label><input type="number">
-                                    </div>
-                                </div>
-                                <br>
-                                <h3><i>Внеаудиторные учебные занятия:</i></h3>
-                                <br>
-                                <div class="row">
-                                    <div class="col">
-                                        <label>Теоритическая часть</label><input type="number">
-                                    </div>
-                                    <div class="gap"></div>
-                                    <div class="col">
-                                        <label>Практическая часть</label><input type="number">
-                                    </div>
-                                </div>
-                                <label for="forms">Формы контроля</label>
-                                <textarea id="forms" rows="2"></textarea>
-                                <label for="content">Содержание темы</label>
-                                <textarea id="content" rows="5"></textarea>
-                            </main>
-                            <footer>
-                                <span class="button" @click="newThemeSave()">Сохранить</span>
-                            </footer>
-                        </section>
-                    </form>
-                </main>
-                <footer>
-                    <span class="button" @click="newModuleSave()">Сохранить</span>
-                    <span class="button" @click="newThemeAdd()">Добавить тему</span>
+                <footer class="creator-main-actions">
+                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="newModuleAdd()" v-if="currentTab === 'construct'">Добавить
+                        раздел/модуль</span>
+                    <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
                 </footer>
             </div>
-        </section>
+        </div>
+        <!-- <footer class="creator-main-actions">
+            <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="newModuleAdd()" v-if="currentTab === 'construct'">Добавить раздел/модуль</span>
+            <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
+        </footer> -->
     </main>
 
 
@@ -188,7 +204,7 @@
                 el: '.creator-main-container',
                 data: {
                     currentTab: 'construct',
-                    moduleAddModalVisible: false,
+                    moduleAddVisible: false,
                     themeAddVisible: false,
                     title: '',
                     authors: '',
@@ -217,8 +233,9 @@
                 methods: {
                     newModuleAdd() {
                         this.curModule.data.title = '';
+                        this.curModule.data.themes = [];
                         this.curModule.index = this.modules.length;
-                        this.moduleAddModalVisible = true;
+                        this.moduleAddVisible = true;
                     },
                     newModuleSave() {
                         let found = this.modules.some(module => {
@@ -243,6 +260,8 @@
                             let tmp = JSON.parse(JSON.stringify(this.curTheme));
                             console.log(tmp);
                             this.curModule.data.themes.push(tmp);
+                            console.log(this.curModule.data.themes);
+                            // update module
                         }
                     },
                     exportToDoc() {
@@ -280,23 +299,28 @@
             font-family: 'Roboto', 'Open Sans', 'Trebuchet MS', 'Verdana', 'Tahoma', sans-serif;
             font-size: 15px;
         }
+
         html,
         body {
             height: 100%;
             width: 100%;
         }
+
         body {
             display: flex;
             justify-content: center;
         }
+
         ul {
             margin: 0;
             padding: 0;
             list-style-type: none;
         }
+
         li {
             padding-left: 15px;
         }
+
         .button {
             background-color: #da251d;
             border: none;
@@ -306,30 +330,40 @@
             margin-right: 25px;
             transition: background-color 0.1s;
         }
+
         .button:hover {
             background-color: #3088b8;
         }
+
+        .button-disabled {
+            pointer-events: none;
+            background-color: #777777;
+        }
+
         .creator-main-container {
             display: flex;
             flex-direction: column;
             min-height: 860px;
             width: 1274px;
             min-width: 1274px;
-            background: url(http://project4stroy.nd.ru/download_file.html?file_id=6567179274595081388) no-repeat #f2f2f2 0% 100%;
         }
+
         .creator-main-nav,
         .creator-main-actions {
             display: flex;
             width: 100%;
         }
+
         .creator-main-nav {
             height: 40px;
         }
+
         .creator-main-actions {
             height: 50px;
             background: #ffffff;
-            padding: 10px 15px;
+            padding: 10px 0;
         }
+
         .creator-nav-button {
             display: flex;
             align-items: center;
@@ -338,32 +372,40 @@
             cursor: pointer;
             transition: background-color 0.18s;
         }
+
         .creator-nav-button:hover {
             background: #dfdfdf;
         }
+
         .creator-tabs-container {
             display: flex;
             flex: 1;
         }
+
         .creator-tab {
             min-height: 100%;
             flex: 1;
             background: rgba(255, 255, 255, 0.8);
             padding: 5px;
         }
+
         .creator-tab .result {
             padding: 30px;
         }
+
         .creator-tab .result * {
             font-family: 'Times New Roman', serif;
         }
+
         .creator-tab.tab-hidden {
             display: none;
         }
+
         form label {
             display: block;
             width: 100%;
         }
+
         form input,
         form select,
         form textarea {
@@ -374,16 +416,20 @@
             padding: 3px 6px;
             box-shadow: inset 0 1px 3px #dddddd;
         }
+
         form input,
         form textarea {
             width: 100%;
         }
+
         form textarea {
             resize: vertical;
         }
+
         form input.hours {
             width: 80px;
         }
+
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button {
             -webkit-appearance: none;
@@ -391,94 +437,71 @@
             appearance: none;
             margin: 0;
         }
+
         input[type='number'] {
             -moz-appearance: textfield;
         }
+
         .row {
             width: 100%;
             display: flex;
         }
+
         .row .col {
             flex: 1;
         }
+
         .row .gap {
             width: 15px;
         }
-        .modal {
-            position: fixed;
-            z-index: 1;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.4);
-        }
-        .modal .modal-body {
-            position: relative;
-            background-color: #fefefe;
-            margin: 30px auto 0 auto;
-            padding: 0 15px;
-            border: 1px solid rgb(172, 172, 172);
-            width: 1200px;
-            height: 90%;
-        }
-        /* .modal .modal-body .modal-body-darken {
-            pointer-events: none;
-            position: relative;
-        }
-        .modal .modal-body.modal-body-darken::before {
-            content: '';
-            display: block;
-            height: 100%;
-            width: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: rgba(0,0,0,0.4);
-        } */
-        .modal .modal-body header,
-        .modal .modal-body footer {
+
+        .content-add header,
+        .content-add footer {
             display: flex;
             height: 40px;
         }
-        .modal .modal-body header {
-            border-bottom: 1px solid #aaa;
-        }
-        .modal .modal-body footer {
-            padding: 5px 15px;
+
+        .content-add header {
             border-top: 1px solid #aaa;
         }
-        .modal .modal-body header .left,
-        .modal .modal-body header .right {
+
+        .content-add footer {
+            padding: 5px 15px;
+            border-bottom: 1px solid #aaa;
+        }
+
+        .content-add header .left,
+        .content-add header .right {
             flex: 1;
         }
-        .modal .modal-body header .title {
+
+        .content-add header .title {
             flex: 8;
             width: 90%;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .modal .modal-body header .close {
+
+        .content-add header .close {
             color: #da251d;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
-        .modal .modal-body header .close:hover,
-        .modal .modal-body header .close:focus {
+
+        .content-add header .close:hover,
+        .content-add header .close:focus {
             color: #3088b8;
             text-decoration: none;
             cursor: pointer;
         }
-        .modal .modal-body main {
+
+        .content-add main {
             height: calc(100% - 80px);
             padding: 15px 0;
         }
-        .modal-hidden {
-            display: none;
-        }
+
         .modules {
             border-top: 1px solid #aaa;
             padding-top: 10px;
