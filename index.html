@@ -64,10 +64,10 @@
                         <br>
                         <ul v-if="modules.length">
                             <li class="module" v-for="module in modules" :key="module.index" @click="moduleOpen(module)">
-                                {{ module.index + 1 }}. {{ module.data.title }} ({{ module.data.themes.length }})
+                                {{ module.data.title }}
                                 <ul>
                                     <li class="theme" v-for="theme in module.data.themes" :key="theme.index" @click="themeOpen(theme)">
-                                        {{ theme.index + 1 }}. {{ theme.data.title }}
+                                        {{ theme.data.title }}
                                     </li>
                                 </ul>
                             </li>
@@ -87,7 +87,7 @@
                         <main>
                             <form action="">
                                 <label>Наименование модуля</label><input type="text" v-model="curModule.data.title">
-                                <section class="content-add theme-add" v-if="themeAddVisible">
+                                <section class="content-add theme-add" :class="{ 'theme-add-darken': activityAddVisible }" v-if="themeAddVisible">
                                     <header>
                                         <div class="left">
                                             <span class="close" @click="themeAddVisible = false">&times;</span>
@@ -99,6 +99,31 @@
                                     </header>
                                     <main>
                                         <label>Наименование темы</label><input type="text" v-model="curTheme.data.title">
+
+
+
+                                        <section class="content-add activity-add" v-if="activityAddVisible">
+                                            <header>
+                                                <div class="left">
+                                                    <span class="close" @click="activityAddVisible = false">&times;</span>
+                                                </div>
+                                                <div class="title">
+                                                    <h3>Добавление вида деятельности</h3>
+                                                </div>
+                                                <div class="right"></div>
+                                            </header>
+                                            <main>
+                                                <label>Вид деятельности/ОТФ/ТФ</label><input type="text" v-model="curActivity.data.title">
+                                            </main>
+                                            <footer>
+                                                <span class="button" @click="activitySave()">Сохранить</span>
+                                                <span class="button" @click="">Добавить ...</span>
+                                                <span class="button" @click="activityRemove()">Удалить вид деятельности</span>
+                                            </footer>
+                                        </section>
+
+
+
                                         <div class="row">
                                             <div class="col">
                                                 <label>Общая трудоемкость</label><input type="number">
@@ -139,20 +164,26 @@
                                     </main>
                                     <footer>
                                         <span class="button" @click="themeSave()">Сохранить</span>
+                                        <span class="button" @click="activityAdd()">Добавить вид деятельности</span>
+                                        <span class="button" @click="themeRemove()">Удалить тему</span>
                                     </footer>
                                 </section>
                             </form>
                         </main>
                         <footer>
                             <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleSave()">Сохранить</span>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="themeAdd()">Добавить тему</span>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleRemove()">Удалить модуль</span>
+                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="themeAdd()">Добавить
+                                тему</span>
+                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleRemove()">Удалить
+                                модуль</span>
                         </footer>
                     </section>
                 </form>
                 <footer class="creator-main-actions">
-                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить модуль</span>
-                    <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
+                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить
+                        модуль</span>
+                    <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате
+                        <code>.doc</code></span>
                 </footer>
             </div>
             <div class="creator-tab tab-result" :class="{ 'tab-hidden': currentTab === 'construct' }">
@@ -183,8 +214,10 @@
                     <br>
                 </section>
                 <footer class="creator-main-actions">
-                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить модуль</span>
-                    <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
+                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить
+                        модуль</span>
+                    <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате
+                        <code>.doc</code></span>
                 </footer>
             </div>
         </div>
@@ -197,44 +230,46 @@
         document.addEventListener('DOMContentLoaded', () => {
             let creator = new Vue({
                 el: '.creator-main-container',
-                data: {
-                    currentTab: 'construct',
-                    moduleAddVisible: false,
-                    themeAddVisible: false,
-                    activityAddVisible: false,
-                    competenceAddVisible: false,
-                    title: '',
-                    authors: '',
-                    coordPosition: '',
-                    coordName: '',
-                    relevance: '1.1.1. Нормативную правовую основу разработки программы составляют: (приводятся ссылки на нормативно - правовые документы с указанием соответствующих разделов, пунктов, подпунктов, конкретного содержания данных разделов). 1.1.2.Дополнительная профессиональная программа повышения квалификации «Название программы» разработана на основе профессиональных стандартов (квалификационных требований)(Приводится наименование профессионального стандарта, который использовался при разработке программы (http://profstandart.rosmintrud.ru/reestr-professionalnyh-standartov).При отсутствии профессионального стандарта приводится наименование соответствующего раздела Единого квалификационного справочника должностей руководителей, специалистов и служащих (ЕКС) - http://profstandart.rosmintrud.ru/eksd), либо ФГОС ВО по соответствующему направлению подготовки http://www.edu.ru/abitur/act.82/index.php#Par768',
-                    target: '1.2. Цель - совершенствование и (или) получение новой(ых) компетенции(й), необходимой(ых) для профессиональной деятельности, и(или) повышение профессионального уровня в рамках имеющейся квалификации и в соответствии с профессиональными стандартами.',
-                    modules: [],
-                    curModule: {
-                        index: null,
-                        data: {
-                            title: '',
-                            themes: []
-                        }
-                    },
-                    curTheme: {
-                        index: null,
-                        data: {
-                            title: '',
-                            activities: []
-                        }
-                    },
-                    curActivity: {
-                        index: null,
-                        data: {
-                            title: '',
-                            competencies: []
-                        }
-                    },
-                    curCompetence: {
-                        index: null,
-                        data: {
-                            title: ''
+                data() {
+                    return {
+                        currentTab: 'construct',
+                        moduleAddVisible: false,
+                        themeAddVisible: false,
+                        activityAddVisible: false,
+                        competenceAddVisible: false,
+                        title: '',
+                        authors: '',
+                        coordPosition: '',
+                        coordName: '',
+                        relevance: '1.1.1. Нормативную правовую основу разработки программы составляют: (приводятся ссылки на нормативно - правовые документы с указанием соответствующих разделов, пунктов, подпунктов, конкретного содержания данных разделов). 1.1.2.Дополнительная профессиональная программа повышения квалификации «Название программы» разработана на основе профессиональных стандартов (квалификационных требований)(Приводится наименование профессионального стандарта, который использовался при разработке программы (http://profstandart.rosmintrud.ru/reestr-professionalnyh-standartov).При отсутствии профессионального стандарта приводится наименование соответствующего раздела Единого квалификационного справочника должностей руководителей, специалистов и служащих (ЕКС) - http://profstandart.rosmintrud.ru/eksd), либо ФГОС ВО по соответствующему направлению подготовки http://www.edu.ru/abitur/act.82/index.php#Par768',
+                        target: '1.2. Цель - совершенствование и (или) получение новой(ых) компетенции(й), необходимой(ых) для профессиональной деятельности, и(или) повышение профессионального уровня в рамках имеющейся квалификации и в соответствии с профессиональными стандартами.',
+                        modules: [],
+                        curModule: {
+                            index: null,
+                            data: {
+                                title: '',
+                                themes: []
+                            }
+                        },
+                        curTheme: {
+                            index: null,
+                            data: {
+                                title: '',
+                                activities: []
+                            }
+                        },
+                        curActivity: {
+                            index: null,
+                            data: {
+                                title: '',
+                                competencies: []
+                            }
+                        },
+                        curCompetence: {
+                            index: null,
+                            data: {
+                                title: ''
+                            }
                         }
                     }
                 },
@@ -252,8 +287,12 @@
                     moduleAdd() {
                         this.curModule.data.title = '';
                         this.curModule.data.themes = [];
-                        this.curModule.index = this.modules.length;
+                        this.curModule.index = Date.now();
                         this.moduleAddVisible = true;
+
+                        setTimeout(() => {
+                            document.querySelector('.module-add').scrollIntoView();
+                        }, 5);
                     },
                     moduleSave() {
                         if (!this.curModule.data.title) {
@@ -269,30 +308,48 @@
                             this.storageSave();
                         } else {
                             this.moduleUpdate();
-                            this.storageSave();
                         }
                     },
                     moduleOpen(module) {
                         this.curModule = module;
                         this.moduleAddVisible = true;
+
+                        setTimeout(() => {
+                            document.querySelector('.module-add').scrollIntoView();
+                        }, 5);
                     },
                     moduleUpdate() {
                         let index = this.modules.map(m => {
                             return m.index
                         }).indexOf(this.curModule.index);
-
-                        if (index >= 0) {
+                        if (index > -1) {
                             this.modules[index] = this.curModule;
+                            this.storageSave();
                         }
                     },
                     moduleRemove() {
-
+                        let ask = confirm('Вы уверены?');
+                        if (ask) {
+                            let index = this.modules.map(m => {
+                                return m.index
+                            }).indexOf(this.curModule.index);
+                            if (index > -1) {
+                                this.modules.splice(index, 1);
+                                this.storageSave();
+                                this.moduleAddVisible = false;
+                            }
+                        }
                     },
                     // ******* Themes *******
                     themeAdd() {
                         this.curTheme.data.title = '';
-                        this.curTheme.index = this.curModule.data.themes.length;
-                        this.themeAddVisible = true; 
+                        this.curTheme.data.activities = [];
+                        this.curTheme.index = Date.now();
+                        this.themeAddVisible = true;
+
+                        setTimeout(() => {
+                            document.querySelector('.theme-add').scrollIntoView();
+                        }, 5);
                     },
                     themeSave() {
                         if (!this.curTheme.data.title) {
@@ -305,21 +362,51 @@
                         if (!found) {
                             let tmp = JSON.parse(JSON.stringify(this.curTheme));
                             this.curModule.data.themes.push(tmp);
+                            this.storageSave();
+                        } else {
+                            this.themeUpdate();
                         }
                     },
                     themeOpen(theme) {
                         this.curTheme = theme;
                         this.themeAddVisible = true;
+
+                        setTimeout(() => {
+                            document.querySelector('.theme-add').scrollIntoView();
+                        }, 5);
                     },
                     themeUpdate() {
-
+                        let index = this.curModule.data.themes.map(t => {
+                            return t.index
+                        }).indexOf(this.curTheme.index);
+                        if (index > -1) {
+                            this.curModule.data.themes[index] = this.curTheme;
+                            this.storageSave();
+                        }
                     },
                     themeRemove() {
-
+                        let ask = confirm('Вы уверены?');
+                        if (ask) {
+                            let index = this.curModule.data.themes.map(m => {
+                                return m.index
+                            }).indexOf(this.curTheme.index);
+                            if (index > -1) {
+                                this.curModule.data.themes.splice(index, 1);
+                                this.storageSave();
+                                this.themeAddVisible = false;
+                            }
+                        }
                     },
                     // ******* Activities *******
                     activityAdd() {
+                        this.curActivity.data.title = '';
+                        this.curActivity.data.competencies = [];
+                        this.curActivity.index = Date.now();
+                        this.activityAddVisible = true;
 
+                        setTimeout(() => {
+                            document.querySelector('.activity-add').scrollIntoView();
+                        }, 5);
                     },
                     activitySave() {
 
@@ -547,19 +634,28 @@
             width: 15px;
         }
 
+        .content-add.module-add.module-add-darken {
+            background: #dedede;
+            pointer-events: none;
+        }
+
+        .content-add.theme-add.theme-add-darken {
+            background: #e7e7e7;
+            pointer-events: none;
+        }
+
         .content-add.module-add {
             margin: 15px 0 5px 0;
         }
 
         .content-add.module-add,
-        .content-add.theme-add {
+        .content-add.theme-add,
+        .content-add.activity-add {
             background: #f5f5f5;
             padding: 0 15px 5px 15px;
+            margin-bottom: 10px;
             box-shadow: 0 2px 5px #888888;
-        }
-
-        .content-add.module-add.module-add-darken {
-            background: #dedede;
+            pointer-events: all;
         }
 
         .content-add header,
