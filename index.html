@@ -99,8 +99,7 @@
                         <main>
                             <form action="">
                                 <label>Наименование модуля</label><input type="text" v-model="curModule.data.title">
-                                <section class="content-add theme-add" :class="{ 'theme-add-darken': activityAddVisible }"
-                                    v-if="themeAddVisible">
+                                <section class="content-add theme-add" :class="{ 'theme-add-darken': activityAddVisible }" v-if="themeAddVisible">
                                     <header>
                                         <div class="left">
                                             <span class="close" @click="themeAddVisible = false">&times;</span>
@@ -115,7 +114,7 @@
 
 
 
-                                        <section class="content-add activity-add" v-if="activityAddVisible">
+                                        <section class="content-add activity-add" :class="{ 'activity-add-darken': competenceAddVisible }" v-if="activityAddVisible">
                                             <header>
                                                 <div class="left">
                                                     <span class="close" @click="activityAddVisible = false">&times;</span>
@@ -133,7 +132,9 @@
                                                         <div class="left">
                                                             <span class="close" @click="competenceAddVisible = false">&times;</span>
                                                         </div>
-                                                        <div class="title"></div>
+                                                        <div class="title">
+                                                            <h3>Добавление компетенции</h3>
+                                                        </div>
                                                         <div class="right"></div>
                                                     </header>
                                                     <main>
@@ -143,16 +144,16 @@
                                                         <label>Знание</label><input type="text" v-model="curCompetence.data.knowledge">
                                                     </main>
                                                     <footer>
-                                                        <span class="button" @click="competenceRemove()">Удалить
-                                                            профессиональную компетенцию</span>
+                                                        <span class="button" @click="competenceSave()">Сохранить</span>
+                                                        <span class="button" @click="competenceRemove()">Удалить профессиональную компетенцию</span>
                                                     </footer>
                                                 </section>
 
                                             </main>
                                             <footer>
-                                                <span class="button" @click="activitySave()">Сохранить</span>
-                                                <span class="button" @click="competenceAdd()">Добавить профессиональную компетенцию</span>
-                                                <span class="button" @click="activityRemove()">Удалить вид деятельности</span>
+                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activitySave()">Сохранить</span>
+                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="competenceAdd()">Добавить профессиональную компетенцию</span>
+                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activityRemove()">Удалить вид деятельности</span>
                                             </footer>
                                         </section>
 
@@ -197,9 +198,9 @@
                                         <textarea id="content" rows="5"></textarea>
                                     </main>
                                     <footer>
-                                        <span class="button" @click="themeSave()">Сохранить</span>
-                                        <span class="button" @click="activityAdd()">Добавить вид деятельности</span>
-                                        <span class="button" @click="themeRemove()">Удалить тему</span>
+                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeSave()">Сохранить</span>
+                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="activityAdd()">Добавить вид деятельности</span>
+                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeRemove()">Удалить тему</span>
                                     </footer>
                                 </section>
                             </form>
@@ -495,14 +496,33 @@
                         }, 5);
                     },
                     competenceSave() {
-
+                        if (!this.curCompetence.data.title) {
+                            alert('Необходимо указать название компетенции');
+                            return;
+                        }
+                        let found = this.curActivity.data.competencies.some(competence => {
+                            return competence.index === this.curCompetence.index;
+                        });
+                        if (!found) {
+                            let tmp = JSON.parse(JSON.stringify(this.curCompetence));
+                            this.curActivity.data.competencies.push(tmp);
+                            this.storageSave();
+                        } else {
+                            this.competenceUpdate();
+                        }
                     },
                     competenceOpen(competence) {
                         this.curCompetence = competence;
                         this.competenceAddVisible = true;
                     },
                     competenceUpdate() {
-
+                        let index = this.curActivity.data.competencies.map(c => {
+                            return c.index
+                        }).indexOf(this.curCompetence.index);
+                        if (index > -1) {
+                            this.curActivity.data.competencies[index] = this.curCompetence;
+                            this.storageSave();
+                        }
                     },
                     competenceRemove() {
                         let ask = confirm('Вы уверены?');
@@ -714,13 +734,18 @@
         }
 
         .content-add.module-add.module-add-darken {
-            background: #dedede;
+            background: #d6d6d6;
             pointer-events: none;
         }
 
         .content-add.theme-add.theme-add-darken {
-            background: #e7e7e7;
+            background: #e4e4e4;
             pointer-events: none;
+        }
+
+        .content-add.activity-add.activity-add-darken {
+            pointer-events: none;
+            background: #f3f3f3;
         }
 
         .content-add.module-add {
@@ -729,8 +754,9 @@
 
         .content-add.module-add,
         .content-add.theme-add,
-        .content-add.activity-add {
-            background: #f5f5f5;
+        .content-add.activity-add,
+        .content-add.competence-add {
+            background: #fdfdfd;
             padding: 0 15px 5px 15px;
             margin-bottom: 10px;
             box-shadow: 0 2px 5px #888888;
