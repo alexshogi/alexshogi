@@ -245,6 +245,20 @@
                     <br>
                     <br>
                     <br>
+                    <div style="page-break-after: always;"></div>
+                    <div style="page-break-before: always;"></div>
+                    <table border="1" cellpadding="0" cellspacing="0" style="width: 100%;">
+                        <tr>
+                            <th>Виды деятельности/ОТФ/ТФ</th>
+                            <th>Профессиональные компетенции (имеющиеся или осваиваемые)/ТД</th>
+                            <th>Практический опыт</th>
+                            <th>Умения</th>
+                            <th>Знания</th>
+                        </tr>
+                        <tr>
+                            <td v-for="activity in activities" :key="activity.index">{{ activity.data.title }}</td>
+                        </tr>
+                    </table>
                 </section>
                 <footer class="creator-main-actions">
                     <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить модуль</span>
@@ -273,9 +287,9 @@
                         authors: '',
                         coordPosition: '',
                         coordName: '',
-                        relevance: '1.1.1. Нормативную правовую основу разработки программы составляют: (приводятся ссылки на нормативно - правовые документы с указанием соответствующих разделов, пунктов, подпунктов, конкретного содержания данных разделов). 1.1.2.Дополнительная профессиональная программа повышения квалификации «Название программы» разработана на основе профессиональных стандартов (квалификационных требований)(Приводится наименование профессионального стандарта, который использовался при разработке программы (http://profstandart.rosmintrud.ru/reestr-professionalnyh-standartov).При отсутствии профессионального стандарта приводится наименование соответствующего раздела Единого квалификационного справочника должностей руководителей, специалистов и служащих (ЕКС) - http://profstandart.rosmintrud.ru/eksd), либо ФГОС ВО по соответствующему направлению подготовки http://www.edu.ru/abitur/act.82/index.php#Par768',
+                        relevance: '1.1.1. Нормативную правовую основу разработки программы составляют: (приводятся ссылки на нормативно - правовые документы с указанием соответствующих разделов, пунктов, подпунктов, конкретного содержания данных разделов)./r/n1.1.2.Дополнительная профессиональная программа повышения квалификации «Название программы» разработана на основе профессиональных стандартов (квалификационных требований)(Приводится наименование профессионального стандарта, который использовался при разработке программы (http://profstandart.rosmintrud.ru/reestr-professionalnyh-standartov).При отсутствии профессионального стандарта приводится наименование соответствующего раздела Единого квалификационного справочника должностей руководителей, специалистов и служащих (ЕКС) - http://profstandart.rosmintrud.ru/eksd), либо ФГОС ВО по соответствующему направлению подготовки http://www.edu.ru/abitur/act.82/index.php#Par768',
                         target: '1.2. Цель - совершенствование и (или) получение новой(ых) компетенции(й), необходимой(ых) для профессиональной деятельности, и(или) повышение профессионального уровня в рамках имеющейся квалификации и в соответствии с профессиональными стандартами.',
-                        modules: [],
+                        modules: JSON.parse(localStorage.getItem('modules')) || [],
                         curModule: {
                             index: null,
                             data: {
@@ -316,15 +330,47 @@
                         }
                     }
                 },
-                mounted() {
-                    let jsonData = localStorage.getItem('creatorData') || '';
-                    if (jsonData.length) {
-                        this.modules = JSON.parse(jsonData);
+                computed: {
+                    activities() {
+                        let stock = [];
+                        this.modules.forEach(m => {
+                            m.data.themes.forEach(t => {
+                                t.data.activities.forEach(a => {
+                                    stock.push(a);
+                                });
+                            });
+                        });
+                        console.log(stock);
+                        return stock;
                     }
+                },
+                mounted() {
+                    let headerData = localStorage.getItem('headerData') || '';
+                    if (headerData.length) {
+                        let parsedData = JSON.parse(headerData);
+                        this.title = parsedData.title;
+                        this.authors = parsedData.authors;
+                        this.coordPosition = parsedData.coordPosition;
+                        this.coordName = parsedData.coordName;
+                        this.relevance = parsedData.relevance;
+                        this.target = parsedData.target;
+                    }
+                    window.onbeforeunload = () => {
+                        this.storageSave();
+                    };
                 },
                 methods: {
                     storageSave() {
-                        localStorage.setItem('creatorData', JSON.stringify(this.modules));
+                        localStorage.setItem('modules', JSON.stringify(this.modules));
+                        let tmp = {
+                            title: this.title,
+                            authors: this.authors,
+                            coordPosition: this.coordPosition,
+                            coordName: this.coordName,
+                            relevance: this.relevance,
+                            target: this.target
+                        };
+                        localStorage.setItem('headerData', JSON.stringify(tmp));
                     },
                     // ******* Modules *******
                     moduleAdd() {
@@ -393,7 +439,7 @@
                         this.curTheme.data.theory = 0;
                         this.curTheme.data.practice = 0;
                         this.curTheme.data.controls = '';
-                        this.curTheme.data.contents = '';
+                        this.curTheme.data.contents = ''; 
                         this.curTheme.data.activities = [];
                         this.curTheme.index = Date.now();
                         this.themeAddVisible = true;
