@@ -221,33 +221,8 @@
             </div>
             <div class="creator-tab tab-result" :class="{ 'tab-hidden': currentTab === 'construct' }">
                 <section class="result">
-                    <br><br>
-                    <h2 style="text-align:center;">МИНИСТЕРСТВО ОБРАЗОВАНИЯ МОСКОВСКОЙ ОБЛАСТИ</h2><br>
-                    <h3 style="text-align:center;">Государственное бюджетное образовательное учреждение<br>
-                        высшего образования Московской области<br>
-                        «Академия социального управления»</h3><br><br>
-                    <h3 style="text-align:center;">Кафедра информационно-коммуникационных технологий</h3>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <h2 style="text-align:center;">Дополнительная профессиональная программа<br>
-                        (повышение квалификации)<br>
-                        {{ this.title }}
-                    </h2>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <br>
-                    <div style="page-break-after: always;"></div>
-                    <div style="page-break-before: always;"></div>
-                    <table border="1" cellpadding="0" cellspacing="0" style="width: 100%;">
+
+                    <table border="1" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse;">
                         <tr>
                             <th>Виды деятельности/ОТФ/ТФ</th>
                             <th>Профессиональные компетенции (имеющиеся или осваиваемые)/ТД</th>
@@ -255,10 +230,30 @@
                             <th>Умения</th>
                             <th>Знания</th>
                         </tr>
-                        <tr>
-                            <td v-for="activity in activities" :key="activity.index">{{ activity.data.title }}</td>
-                        </tr>
+                        <template v-for="a in activities" :key="a.index">
+                            <tr>
+                                <td :rowspan="a.data.competencies.length || 1">{{ a.data.title }}</td>
+                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.title }}</td>
+                                <td v-else>—</td>
+                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.experience }}</td>
+                                <td v-else>—</td>
+                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.skill }}</td>
+                                <td v-else>—</td>
+                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.knowledge }}</td>
+                                <td v-else>—</td>
+                            </tr>
+                            <template v-for="c in noOneArray(a.data.competencies)" :key="c.index">
+                                <tr>
+                                    <td>{{ c.data.title || '—' }}</td>
+                                    <td>{{ c.data.experience || '—' }}</td>
+                                    <td>{{ c.data.skill || '—' }}</td>
+                                    <td>{{ c.data.knowledge || '—' }}</td>
+                                </tr>
+                            </template>
+                            
+                        </template>
                     </table>
+
                 </section>
                 <footer class="creator-main-actions">
                     <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить модуль</span>
@@ -278,7 +273,7 @@
                 el: '.creator-main-container',
                 data() {
                     return {
-                        currentTab: 'construct',
+                        currentTab: 'result', // construct / result
                         moduleAddVisible: false,
                         themeAddVisible: false,
                         activityAddVisible: false,
@@ -623,6 +618,11 @@
                         }
                         document.body.removeChild(downloadLink);
                     },
+                    // result page
+                    // array without first elem
+                    noOneArray(arr) {
+                        return [...arr].slice(1);
+                    }
                 }
             });
         });
@@ -901,6 +901,11 @@
         .module:hover,
         .theme:hover {
             color: rgb(22, 22, 223);
+        }
+
+        .result table th,
+        .result table td {
+            padding: 3px;
         }
     </style>
 </body>
