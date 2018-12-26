@@ -19,6 +19,7 @@
         <div class="creator-tabs-container">
             <div class="creator-tab tab-construct" :class="{ 'tab-hidden': currentTab === 'result' }">
                 <form action="">
+                    <div v-if="1 === 2">
                     <label for="title">Название ДПП</label><input type="text" name="title" v-model="title">
                     <label for="authors">Автор/Авторский коллектив</label><input type="text" name="authors" v-model="authors">
                     <div class="row">
@@ -58,28 +59,17 @@
                                 часа(ов)</label>
                         </div>
                     </div>
+                    </div>
 
                     <section class="modules">
                         <h3>Структура программы</h3>
                         <br>
-                        <ul v-if="modules.length">
-                            <li class="module" v-for="module in modules" :key="module.index" @click="moduleOpen(module)">
-                                {{ module.data.title }}
-                                <ul>
-                                    <li class="theme" v-for="theme in module.data.themes" :key="theme.index" @click="themeOpen(theme)">
-                                        {{ theme.data.title }}
-                                        <ul>
-                                            <li class="activity" v-for="activity in theme.data.activities" :key="activity.index"
-                                                @click="activityOpen(activity)">
-                                                {{ activity.data.title }}
-                                                <ul>
-                                                    <li class="competence" v-for="competence in activity.data.competencies"
-                                                        :key="competence.index" @click="competenceOpen(competence)">
-                                                        {{ competence.data.title }}
-                                                    </li>
-                                                </ul>
-                                            </li>
-                                        </ul>
+                        <ul v-if="modules && modules.length">
+                            <li class="module" v-for="module in modules" :key="module.index" @click="moduleOpen(module)" :data-module="module.id">
+                                {{ module.title }}
+                                <ul v-if="moduleThemes(module.id)">
+                                    <li class="theme" v-for="theme in moduleThemes(module.id)" :key="theme.index" @click="themeOpen(theme)" :data-theme="theme.id">
+                                        {{ theme.title }}
                                     </li>
                                 </ul>
                             </li>
@@ -98,7 +88,7 @@
                         </header>
                         <main>
                             <form action="">
-                                <label>Наименование модуля</label><input type="text" v-model="curModule.data.title">
+                                <label>Наименование модуля</label><input type="text" v-model="curModule.title">
                                 <section class="content-add theme-add" :class="{ 'theme-add-darken': activityAddVisible }" v-if="themeAddVisible">
                                     <header>
                                         <div class="left">
@@ -110,11 +100,11 @@
                                         <div class="right"></div>
                                     </header>
                                     <main>
-                                        <label>Наименование темы</label><input type="text" v-model="curTheme.data.title">
+                                        <label>Наименование темы</label><input type="text" v-model="curTheme.title">
 
 
 
-                                        <section class="content-add activity-add" :class="{ 'activity-add-darken': competenceAddVisible }" v-if="activityAddVisible">
+                                        <!-- <section class="content-add activity-add" :class="{ 'activity-add-darken': competenceAddVisible }" v-if="activityAddVisible">
                                             <header>
                                                 <div class="left">
                                                     <span class="close" @click="activityAddVisible = false">&times;</span>
@@ -155,17 +145,17 @@
                                                 <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="competenceAdd()">Добавить профессиональную компетенцию</span>
                                                 <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activityRemove()">Удалить вид деятельности</span>
                                             </footer>
-                                        </section>
+                                        </section> -->
 
 
 
                                         <div class="row">
                                             <div class="col">
-                                                <label>Общая трудоемкость</label><input type="number" v-model="curTheme.data.labor">
+                                                <label>Общая трудоемкость</label><input type="number" v-model="curTheme.labor">
                                             </div>
                                             <div class="gap"></div>
                                             <div class="col">
-                                                <label>Трудоемкость для ППС</label><input type="number" v-model="curTheme.data.labor_pps">
+                                                <label>Трудоемкость для ППС</label><input type="number" v-model="curTheme.labor_pps">
                                             </div>
                                         </div>
                                         <br>
@@ -173,11 +163,11 @@
                                         <br>
                                         <div class="row">
                                             <div class="col">
-                                                <label>Лекции</label><input type="number" v-model="curTheme.data.lections">
+                                                <label>Лекции</label><input type="number" v-model="curTheme.lections">
                                             </div>
                                             <div class="gap"></div>
                                             <div class="col">
-                                                <label>Интерактивные занятия</label><input type="number" v-model="curTheme.data.interactives">
+                                                <label>Интерактивные занятия</label><input type="number" v-model="curTheme.interactives">
                                             </div>
                                         </div>
                                         <br>
@@ -185,21 +175,21 @@
                                         <br>
                                         <div class="row">
                                             <div class="col">
-                                                <label>Теоритическая часть</label><input type="number" v-model="curTheme.data.theory">
+                                                <label>Теоритическая часть</label><input type="number" v-model="curTheme.theory">
                                             </div>
                                             <div class="gap"></div>
                                             <div class="col">
-                                                <label>Практическая часть</label><input type="number" v-model="curTheme.data.practice">
+                                                <label>Практическая часть</label><input type="number" v-model="curTheme.practice">
                                             </div>
                                         </div>
                                         <label for="forms">Формы контроля</label>
-                                        <textarea id="forms" rows="2" v-model="curTheme.data.controls"></textarea>
+                                        <textarea id="forms" rows="2" v-model="curTheme.controls"></textarea>
                                         <label for="content">Содержание темы</label>
-                                        <textarea id="content" rows="5" v-model="curTheme.data.contents"></textarea>
+                                        <textarea id="content" rows="5" v-model="curTheme.contents"></textarea>
                                     </main>
                                     <footer>
                                         <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeSave()">Сохранить</span>
-                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="activityAdd()">Добавить вид деятельности</span>
+                                        <!-- <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="activityAdd()">Добавить вид деятельности</span> -->
                                         <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeRemove()">Удалить тему</span>
                                     </footer>
                                 </section>
@@ -207,10 +197,8 @@
                         </main>
                         <footer>
                             <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleSave()">Сохранить</span>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="themeAdd()">Добавить
-                                тему</span>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleRemove()">Удалить
-                                модуль</span>
+                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="themeAdd(curModule.id)">Добавить тему</span>
+                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleRemove()">Удалить модуль</span>
                         </footer>
                     </section>
                 </form>
@@ -230,7 +218,7 @@
                             <th>Умения</th>
                             <th>Знания</th>
                         </tr>
-                        <template v-for="a in activities" :key="a.index">
+                        <!-- <template v-for="a in activities" :key="a.index">
                             <tr>
                                 <td :rowspan="a.data.competencies.length || 1">{{ a.data.title }}</td>
                                 <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.title }}</td>
@@ -251,7 +239,7 @@
                                 </tr>
                             </template>
                             
-                        </template>
+                        </template> -->
                     </table>
 
                 </section>
@@ -273,7 +261,7 @@
                 el: '.creator-main-container',
                 data() {
                     return {
-                        currentTab: 'result', // construct / result
+                        currentTab: 'construct', // construct / result
                         moduleAddVisible: false,
                         themeAddVisible: false,
                         activityAddVisible: false,
@@ -284,62 +272,59 @@
                         coordName: '',
                         relevance: '1.1.1. Нормативную правовую основу разработки программы составляют: (приводятся ссылки на нормативно - правовые документы с указанием соответствующих разделов, пунктов, подпунктов, конкретного содержания данных разделов)./r/n1.1.2.Дополнительная профессиональная программа повышения квалификации «Название программы» разработана на основе профессиональных стандартов (квалификационных требований)(Приводится наименование профессионального стандарта, который использовался при разработке программы (http://profstandart.rosmintrud.ru/reestr-professionalnyh-standartov).При отсутствии профессионального стандарта приводится наименование соответствующего раздела Единого квалификационного справочника должностей руководителей, специалистов и служащих (ЕКС) - http://profstandart.rosmintrud.ru/eksd), либо ФГОС ВО по соответствующему направлению подготовки http://www.edu.ru/abitur/act.82/index.php#Par768',
                         target: '1.2. Цель - совершенствование и (или) получение новой(ых) компетенции(й), необходимой(ых) для профессиональной деятельности, и(или) повышение профессионального уровня в рамках имеющейся квалификации и в соответствии с профессиональными стандартами.',
-                        modules: JSON.parse(localStorage.getItem('modules')) || [],
                         curModule: {
-                            index: null,
-                            data: {
-                                title: '',
-                                themes: []
-                            }
+                            id: null,
+                            type: 'module',
+                            title: '',
                         },
                         curTheme: {
-                            index: null,
-                            data: {
-                                title: '',
-                                labor: 0,
-                                labor_pps: 0,
-                                lections: 0,
-                                interactives: 0,
-                                theory: 0,
-                                practice: 0,
-                                controls: '',
-                                contents: '',
-                                activities: []
-                            }
+                            id: null,
+                            parent_id: null,
+                            type: 'theme',
+                            title: '',
+                            labor: 0,
+                            labor_pps: 0,
+                            lections: 0,
+                            interactives: 0,
+                            theory: 0,
+                            practice: 0,
+                            controls: '',
+                            contents: '',
                         },
                         curActivity: {
-                            index: null,
-                            data: {
-                                title: '',
-                                competencies: []
-                            }
+                            id: null,
+                            parent_id: null,
+                            type: 'activity',
+                            title: '',
                         },
                         curCompetence: {
-                            index: null,
-                            data: {
-                                title: '',
-                                experience: '',
-                                skill: '',
-                                knowledge: ''
-                            }
-                        }
+                            id: null,
+                            parent_id: null,
+                            type: 'competence',
+                            title: '',
+                            experience: '',
+                            skill: '',
+                            knowledge: ''
+                        },
+                        items: [],
                     }
                 },
                 computed: {
+                    modules() {
+                        return this.items.filter(i => i.type === 'module');
+                    },
+                    themes() {
+                        return this.items.filter(i => i.type === 'theme');
+                    },
                     activities() {
-                        let stock = [];
-                        this.modules.forEach(m => {
-                            m.data.themes.forEach(t => {
-                                t.data.activities.forEach(a => {
-                                    stock.push(a);
-                                });
-                            });
-                        });
-                        console.log(stock);
-                        return stock;
-                    }
+                        return this.items.filter(i => i.type === 'activity');
+                    },
+                    competencies() {
+                        return this.items.filter(i => i.type === 'competence');
+                    },
                 },
                 mounted() {
+                    this.items = JSON.parse(localStorage.getItem('items')) || [];
                     let headerData = localStorage.getItem('headerData') || '';
                     if (headerData.length) {
                         let parsedData = JSON.parse(headerData);
@@ -350,13 +335,21 @@
                         this.relevance = parsedData.relevance;
                         this.target = parsedData.target;
                     }
+                    console.log(this.modules);
                     window.onbeforeunload = () => {
-                        this.storageSave();
+                        // this.storageSave();
                     };
                 },
                 methods: {
+                    ///////
+                    
+                    moduleThemes(id) {
+                        return this.themes.filter(t => t.parent_id === id);
+                    },
+                    ///////
                     storageSave() {
-                        localStorage.setItem('modules', JSON.stringify(this.modules));
+                        // localStorage.setItem('modules', JSON.stringify(this.modules));
+                        localStorage.setItem('items', JSON.stringify(this.items) || []);
                         let tmp = {
                             title: this.title,
                             authors: this.authors,
@@ -369,121 +362,126 @@
                     },
                     // ******* Modules *******
                     moduleAdd() {
-                        this.curModule.data.title = '';
-                        this.curModule.data.themes = [];
-                        this.curModule.index = Date.now();
+                        this.curModule.title = '';
+                        this.curModule.id = Date.now();
                         this.moduleAddVisible = true;
 
                         setTimeout(() => {
-                            document.querySelector('.module-add').scrollIntoView();
+                            // document.querySelector('.module-add').scrollIntoView();
                         }, 5);
                     },
                     moduleSave() {
-                        if (!this.curModule.data.title) {
+                        if (!this.curModule.title) {
                             alert('Необходимо указать название модуля');
                             return;
                         }
-                        let found = this.modules.some(m => {
-                            return m.index === this.curModule.index;
+                        let found = this.items.some(i => {
+                            return i.id === this.curModule.id;
                         });
                         if (!found) {
                             let tmp = JSON.parse(JSON.stringify(this.curModule));
-                            this.modules.push(tmp);
+                            this.items.push(tmp);
                             this.storageSave();
+                            console.log(this.items);
                         } else {
                             this.moduleUpdate();
                         }
                     },
                     moduleOpen(module) {
-                        this.curModule = module;
+                        this.curModule = {...module};
                         this.moduleAddVisible = true;
 
-                        setTimeout(() => {
-                            document.querySelector('.module-add').scrollIntoView();
-                        }, 5);
+                        // setTimeout(() => {
+                        //     document.querySelector('.module-add').scrollIntoView();
+                        // }, 5);
                     },
                     moduleUpdate() {
-                        let index = this.modules.map(m => {
-                            return m.index
-                        }).indexOf(this.curModule.index);
+                        let items = [...this.items];
+                        let index = items.map(i => {
+                            return i.id
+                        }).indexOf(this.curModule.id);
                         if (index > -1) {
-                            this.modules[index] = this.curModule;
+                            items[index] = {...this.curModule};
+                            this.items = items;
                             this.storageSave();
+                            console.log(this.items);
                         }
                     },
                     moduleRemove() {
                         let ask = confirm('Вы уверены?');
                         if (ask) {
-                            let index = this.modules.map(m => {
-                                return m.index
+                            let index = this.items.map(i => {
+                                return i.index
                             }).indexOf(this.curModule.index);
                             if (index > -1) {
-                                this.modules.splice(index, 1);
+                                this.items.splice(index, 1);
                                 this.storageSave();
                                 this.moduleAddVisible = false;
                             }
                         }
                     },
                     // ******* Themes *******
-                    themeAdd() {
-                        this.curTheme.data.title = '';
-                        this.curTheme.data.labor = 0;
-                        this.curTheme.data.labor_pps = 0;
-                        this.curTheme.data.lections = 0;
-                        this.curTheme.data.interactives = 0;
-                        this.curTheme.data.theory = 0;
-                        this.curTheme.data.practice = 0;
-                        this.curTheme.data.controls = '';
-                        this.curTheme.data.contents = ''; 
-                        this.curTheme.data.activities = [];
-                        this.curTheme.index = Date.now();
+                    themeAdd(moduleId) {
+                        this.curTheme.title = '';
+                        this.curTheme.labor = 0;
+                        this.curTheme.labor_pps = 0;
+                        this.curTheme.lections = 0;
+                        this.curTheme.interactives = 0;
+                        this.curTheme.theory = 0;
+                        this.curTheme.practice = 0;
+                        this.curTheme.controls = '';
+                        this.curTheme.contents = '';
+                        this.curTheme.id = Date.now();
+                        this.curTheme.parent_id = moduleId;
                         this.themeAddVisible = true;
 
-                        setTimeout(() => {
-                            document.querySelector('.theme-add').scrollIntoView();
-                        }, 5);
+                        // setTimeout(() => {
+                        //     document.querySelector('.theme-add').scrollIntoView();
+                        // }, 5);
                     },
                     themeSave() {
-                        if (!this.curTheme.data.title) {
+                        if (!this.curTheme.title) {
                             alert('Необходимо указать название темы');
                             return;
                         }
-                        let found = this.curModule.data.themes.some(theme => {
-                            return theme.index === this.curTheme.index;
+                        let found = this.items.some(i => {
+                            return i.id === this.curTheme.id;
                         });
                         if (!found) {
                             let tmp = JSON.parse(JSON.stringify(this.curTheme));
-                            this.curModule.data.themes.push(tmp);
+                            this.items.push(tmp);
                             this.storageSave();
                         } else {
                             this.themeUpdate();
                         }
                     },
                     themeOpen(theme) {
-                        this.curTheme = theme;
+                        this.curTheme = {...theme};
                         this.themeAddVisible = true;
 
-                        setTimeout(() => {
-                            document.querySelector('.theme-add').scrollIntoView();
-                        }, 5);
+                        // setTimeout(() => {
+                        //     document.querySelector('.theme-add').scrollIntoView();
+                        // }, 5);
                     },
                     themeUpdate() {
-                        let index = this.curModule.data.themes.map(t => {
-                            return t.index
-                        }).indexOf(this.curTheme.index);
+                        let items = [...this.items];
+                        let index = items.map(i => {
+                            return i.id
+                        }).indexOf(this.curTheme.id);
                         if (index > -1) {
-                            this.curModule.data.themes[index] = this.curTheme;
+                            items[index] = { ...this.curTheme };
+                            this.items = items;
                             this.storageSave();
                         }
                     },
                     themeRemove() {
                         let ask = confirm('Вы уверены?');
                         if (ask) {
-                            let index = this.curModule.data.themes.map(m => {
-                                return m.index
+                            let index = this.items.map(i => {
+                                return i.index
                             }).indexOf(this.curTheme.index);
                             if (index > -1) {
-                                this.curModule.data.themes.splice(index, 1);
+                                this.items.splice(index, 1);
                                 this.storageSave();
                                 this.themeAddVisible = false;
                             }
