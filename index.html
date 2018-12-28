@@ -65,14 +65,19 @@
                         <h3>Структура программы</h3>
                         <br>
                         <ul v-if="modules && modules.length">
-                            <li class="module" v-for="module in modules" :key="module.index" @click="moduleOpen(module)" :data-module="module.id">
+                            <li v-for="module in modules" :key="module.index" @click="moduleOpen(module)" :data-module="module.id">
                                 {{ module.title }}
                                 <ul v-if="moduleThemes(module.id)">
-                                    <li class="theme" v-for="theme in moduleThemes(module.id)" :key="theme.index" @click="themeOpen(theme)" :data-theme="theme.id">
+                                    <li v-for="theme in moduleThemes(module.id)" :key="theme.index" @click="themeOpen(theme)" :data-theme="theme.id">
                                         {{ theme.title }}
                                         <ul v-if="themeActivities(theme.id)">
-                                            <li class="activity" v-for="activity in themeActivities(theme.id)" :key="activity.index" @click="activityOpen(activity)" :data-activity="activity.id">
+                                            <li v-for="activity in themeActivities(theme.id)" :key="activity.index" @click="activityOpen(activity)" :data-activity="activity.id">
                                                 {{ activity.title }}
+                                                <ul v-if="activityCompetencies(activity.id)">
+                                                    <li v-for="competence in activityCompetencies(activity.id)" :key="competence.index" @click="competenceOpen(competence)" :data-competence="competence.id">
+                                                        {{ competence.title }}
+                                                    </li>
+                                                </ul>
                                             </li>
                                         </ul>
                                     </li>
@@ -106,10 +111,7 @@
                                     </header>
                                     <main>
                                         <label>Наименование темы</label><input type="text" v-model="curTheme.title">
-
-
-
-                                        <!-- <section class="content-add activity-add" :class="{ 'activity-add-darken': competenceAddVisible }" v-if="activityAddVisible">
+                                        <section class="content-add activity-add" :class="{ 'activity-add-darken': competenceAddVisible }" v-if="activityAddVisible">
                                             <header>
                                                 <div class="left">
                                                     <span class="close" @click="activityAddVisible = false">&times;</span>
@@ -120,8 +122,7 @@
                                                 <div class="right"></div>
                                             </header>
                                             <main>
-                                                <label>Вид деятельности/ОТФ/ТФ</label><input type="text" v-model="curActivity.data.title">
-
+                                                <label>Вид деятельности/ОТФ/ТФ</label><input type="text" v-model="curActivity.title">
                                                 <section class="content-add competence-add" v-if="competenceAddVisible">
                                                     <header>
                                                         <div class="left">
@@ -133,27 +134,23 @@
                                                         <div class="right"></div>
                                                     </header>
                                                     <main>
-                                                        <label>Профессиональная компетенция</label><input type="text" v-model="curCompetence.data.title">
-                                                        <label>Практический опыт</label><input type="text" v-model="curCompetence.data.experience">
-                                                        <label>Умение</label><input type="text" v-model="curCompetence.data.skill">
-                                                        <label>Знание</label><input type="text" v-model="curCompetence.data.knowledge">
+                                                        <label>Профессиональная компетенция</label><input type="text" v-model="curCompetence.title">
+                                                        <label>Практический опыт</label><input type="text" v-model="curCompetence.experience">
+                                                        <label>Умение</label><input type="text" v-model="curCompetence.skill">
+                                                        <label>Знание</label><input type="text" v-model="curCompetence.knowledge">
                                                     </main>
                                                     <footer>
                                                         <span class="button" @click="competenceSave()">Сохранить</span>
                                                         <span class="button" @click="competenceRemove()">Удалить профессиональную компетенцию</span>
                                                     </footer>
                                                 </section>
-
                                             </main>
                                             <footer>
                                                 <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activitySave()">Сохранить</span>
-                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="competenceAdd()">Добавить профессиональную компетенцию</span>
+                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="competenceAdd(curActivity.id)">Добавить профессиональную компетенцию</span>
                                                 <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activityRemove()">Удалить вид деятельности</span>
                                             </footer>
-                                        </section> -->
-
-
-
+                                        </section>
                                         <div class="row">
                                             <div class="col">
                                                 <label>Общая трудоемкость</label><input type="number" v-model="curTheme.labor">
@@ -194,7 +191,7 @@
                                     </main>
                                     <footer>
                                         <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeSave()">Сохранить</span>
-                                        <!-- <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="activityAdd()">Добавить вид деятельности</span> -->
+                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="activityAdd(curTheme.id)">Добавить вид деятельности</span>
                                         <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeRemove()">Удалить тему</span>
                                     </footer>
                                 </section>
@@ -341,6 +338,9 @@
                         this.target = parsedData.target;
                     }
                     console.log(this.modules);
+                    console.log(this.themes);
+                    console.log(this.activities);
+                    console.log(this.competencies);
                     window.onbeforeunload = () => {
                     // this.storageSave();
                     };
@@ -351,10 +351,10 @@
                         return this.themes.filter(t => t.parent_id === id);
                     },
                     themeActivities(id) {
-                        return this.activities.filter(a => a.parent.id === id);
+                        return this.activities.filter(a => a.parent_id === id);
                     },
                     activityCompetencies(id) {
-                        return this.competencies.filter(c => c.parent.id === id);
+                        return this.competencies.filter(c => c.parent_id === id);
                     },
                     ///////
                     storageSave() {
