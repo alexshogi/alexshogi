@@ -70,6 +70,11 @@
                                 <ul v-if="moduleThemes(module.id)">
                                     <li class="theme" v-for="theme in moduleThemes(module.id)" :key="theme.index" @click="themeOpen(theme)" :data-theme="theme.id">
                                         {{ theme.title }}
+                                        <ul v-if="themeActivities(theme.id)">
+                                            <li class="activity" v-for="activity in themeActivities(theme.id)" :key="activity.index" @click="activityOpen(activity)" :data-activity="activity.id">
+                                                {{ activity.title }}
+                                            </li>
+                                        </ul>
                                     </li>
                                 </ul>
                             </li>
@@ -337,18 +342,22 @@
                     }
                     console.log(this.modules);
                     window.onbeforeunload = () => {
-                        // this.storageSave();
+                    // this.storageSave();
                     };
                 },
                 methods: {
                     ///////
-                    
                     moduleThemes(id) {
                         return this.themes.filter(t => t.parent_id === id);
                     },
+                    themeActivities(id) {
+                        return this.activities.filter(a => a.parent.id === id);
+                    },
+                    activityCompetencies(id) {
+                        return this.competencies.filter(c => c.parent.id === id);
+                    },
                     ///////
                     storageSave() {
-                        // localStorage.setItem('modules', JSON.stringify(this.modules));
                         localStorage.setItem('items', JSON.stringify(this.items) || []);
                         let tmp = {
                             title: this.title,
@@ -365,10 +374,6 @@
                         this.curModule.title = '';
                         this.curModule.id = Date.now();
                         this.moduleAddVisible = true;
-
-                        setTimeout(() => {
-                            // document.querySelector('.module-add').scrollIntoView();
-                        }, 5);
                     },
                     moduleSave() {
                         if (!this.curModule.title) {
@@ -382,7 +387,6 @@
                             let tmp = JSON.parse(JSON.stringify(this.curModule));
                             this.items.push(tmp);
                             this.storageSave();
-                            console.log(this.items);
                         } else {
                             this.moduleUpdate();
                         }
@@ -390,10 +394,6 @@
                     moduleOpen(module) {
                         this.curModule = {...module};
                         this.moduleAddVisible = true;
-
-                        // setTimeout(() => {
-                        //     document.querySelector('.module-add').scrollIntoView();
-                        // }, 5);
                     },
                     moduleUpdate() {
                         let items = [...this.items];
@@ -434,10 +434,6 @@
                         this.curTheme.id = Date.now();
                         this.curTheme.parent_id = moduleId;
                         this.themeAddVisible = true;
-
-                        // setTimeout(() => {
-                        //     document.querySelector('.theme-add').scrollIntoView();
-                        // }, 5);
                     },
                     themeSave() {
                         if (!this.curTheme.title) {
@@ -458,10 +454,6 @@
                     themeOpen(theme) {
                         this.curTheme = {...theme};
                         this.themeAddVisible = true;
-
-                        // setTimeout(() => {
-                        //     document.querySelector('.theme-add').scrollIntoView();
-                        // }, 5);
                     },
                     themeUpdate() {
                         let items = [...this.items];
@@ -488,108 +480,105 @@
                         }
                     },
                     // ******* Activities *******
-                    activityAdd() {
-                        this.curActivity.data.title = '';
-                        this.curActivity.data.competencies = [];
-                        this.curActivity.index = Date.now();
+                    activityAdd(themeId) {
+                        this.curActivity.title = '';
+                        this.curActivity.id = Date.now();
+                        this.curActivity.parent_id = themeId;
                         this.activityAddVisible = true;
-
-                        setTimeout(() => {
-                            document.querySelector('.activity-add').scrollIntoView();
-                        }, 5);
                     },
                     activitySave() {
-                        if (!this.curActivity.data.title) {
+                        if (!this.curActivity.title) {
                             alert('Необходимо указать название вида деятельности');
                             return;
                         }
-                        let found = this.curTheme.data.activities.some(activity => {
-                            return activity.index === this.curActivity.index;
+                        let found = this.items.some(i => {
+                            return i.id === this.curActivity.id;
                         });
                         if (!found) {
                             let tmp = JSON.parse(JSON.stringify(this.curActivity));
-                            this.curTheme.data.activities.push(tmp);
+                            this.items.push(tmp);
                             this.storageSave();
                         } else {
                             this.activityUpdate();
                         }
                     },
                     activityOpen(activity) {
-                        this.curActivity = activity;
+                        this.curActivity = {...activity};
                         this.activityAddVisible = true;
                     },
                     activityUpdate() {
-                        let index = this.curTheme.data.activities.map(a => {
-                            return a.index
-                        }).indexOf(this.curActivity.index);
+                        let items = [...this.items];
+                        let index = items.map(i => {
+                            return i.id
+                        }).indexOf(this.curActivity.id);
                         if (index > -1) {
-                            this.curTheme.data.activities[index] = this.curActivity;
+                            items[index] = { ...this.curActivity };
+                            this.items = items;
                             this.storageSave();
                         }
                     },
                     activityRemove() {
                         let ask = confirm('Вы уверены?');
                         if (ask) {
-                            let index = this.curTheme.data.activities.map(a => {
-                                return a.index
+                            let index = this.items.map(i => {
+                                return i.index
                             }).indexOf(this.curActivity.index);
                             if (index > -1) {
-                                this.curTheme.data.activities.splice(index, 1);
+                                this.items.splice(index, 1);
                                 this.storageSave();
                                 this.activityAddVisible = false;
                             }
                         }
                     },
                     // ******* Competencies *******
-                    competenceAdd() {
-                        this.curCompetence.data.title = '';
-                        this.curCompetence.data.experience = '';
-                        this.curCompetence.data.skill = '';
-                        this.curCompetence.data.knowledge = '';
-                        this.curCompetence.index = Date.now();
+                    competenceAdd(activityId) {
+                        this.curCompetence.title = '';
+                        this.curCompetence.experience = '';
+                        this.curCompetence.skill = '';
+                        this.curCompetence.knowledge = '';
+                        this.curCompetence.id = Date.now();
+                        this.curCompetence.parent_id = activityId;
                         this.competenceAddVisible = true;
-
-                        setTimeout(() => {
-                            document.querySelector('.competence-add').scrollIntoView();
-                        }, 5);
                     },
                     competenceSave() {
-                        if (!this.curCompetence.data.title) {
-                            alert('Необходимо указать название компетенции');
+                        if (!this.curCompetence.title) {
+                            alert('Необходимо указать название модуля');
                             return;
                         }
-                        let found = this.curActivity.data.competencies.some(competence => {
-                            return competence.index === this.curCompetence.index;
+                        let found = this.items.some(i => {
+                            return i.id === this.curCompetence.id;
                         });
                         if (!found) {
                             let tmp = JSON.parse(JSON.stringify(this.curCompetence));
-                            this.curActivity.data.competencies.push(tmp);
+                            this.items.push(tmp);
                             this.storageSave();
                         } else {
-                            this.competenceUpdate();
+                            this.moduleUpdate();
                         }
                     },
                     competenceOpen(competence) {
-                        this.curCompetence = competence;
+                        this.curCompetence = {...competence};
                         this.competenceAddVisible = true;
                     },
                     competenceUpdate() {
-                        let index = this.curActivity.data.competencies.map(c => {
-                            return c.index
-                        }).indexOf(this.curCompetence.index);
+                        let items = [...this.items];
+                        let index = items.map(i => {
+                            return i.id
+                        }).indexOf(this.curCompetence.id);
                         if (index > -1) {
-                            this.curActivity.data.competencies[index] = this.curCompetence;
+                            items[index] = { ...this.curCompetence };
+                            this.items = items;
                             this.storageSave();
                         }
                     },
                     competenceRemove() {
                         let ask = confirm('Вы уверены?');
                         if (ask) {
-                            let index = this.curActivity.data.competencies.map(c => {
-                                return c.index
+                            let index = this.items.map(i => {
+                                return i.index
                             }).indexOf(this.curCompetence.index);
                             if (index > -1) {
-                                this.curActivity.data.competencies.splice(index, 1);
+                                this.items.splice(index, 1);
                                 this.storageSave();
                                 this.competenceAddVisible = false;
                             }
