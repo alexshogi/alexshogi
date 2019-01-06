@@ -65,16 +65,16 @@
                         <h3>Структура программы</h3>
                         <br>
                         <ul v-if="modules && modules.length">
-                            <li v-for="module in modules" :key="module.index" @click="moduleOpen(module)" :data-module="module.id">
+                            <li v-for="module in modules" :key="module.index" @click.stop="moduleOpen(module)" :data-module="module.id">
                                 {{ module.title }}
                                 <ul v-if="moduleThemes(module.id)">
-                                    <li v-for="theme in moduleThemes(module.id)" :key="theme.index" @click="themeOpen(theme)" :data-theme="theme.id">
+                                    <li v-for="theme in moduleThemes(module.id)" :key="theme.index" @click.stop="themeOpen(theme, module.id)" :data-theme="theme.id" :data-parent-id="module.id">
                                         {{ theme.title }}
                                         <ul v-if="themeActivities(theme.id)">
-                                            <li v-for="activity in themeActivities(theme.id)" :key="activity.index" @click="activityOpen(activity)" :data-activity="activity.id">
+                                            <li v-for="activity in themeActivities(theme.id)" :key="activity.index" @click.stop="activityOpen(activity, theme.id)" :data-activity="activity.id" :data-parent-id="theme.id">
                                                 {{ activity.title }}
                                                 <ul v-if="activityCompetencies(activity.id)">
-                                                    <li v-for="competence in activityCompetencies(activity.id)" :key="competence.index" @click="competenceOpen(competence)" :data-competence="competence.id">
+                                                    <li v-for="competence in activityCompetencies(activity.id)" :key="competence.index" @click.stop="competenceOpen(competence, activity.id)" :data-competence="competence.id" :data-parent-id="activity.id">
                                                         {{ competence.title }}
                                                     </li>
                                                 </ul>
@@ -86,126 +86,128 @@
                         </ul>
                     </section>
 
-                    <section class="content-add module-add" :class="{ 'module-add-darken': themeAddVisible }" v-if="moduleAddVisible">
+                    <section class="content-add" v-if="moduleAddVisible">
                         <header>
                             <div class="left">
                                 <span class="close" @click="moduleAddVisible = false">&times;</span>
                             </div>
                             <div class="title">
-                                <h3>Добавление модуля</h3>
+                                <h3>Добавление/редактирование модуля</h3>
                             </div>
                             <div class="right"></div>
                         </header>
                         <main>
-                            <form action="">
-                                <label>Наименование модуля</label><input type="text" v-model="curModule.title">
-                                <section class="content-add theme-add" :class="{ 'theme-add-darken': activityAddVisible }" v-if="themeAddVisible">
-                                    <header>
-                                        <div class="left">
-                                            <span class="close" @click="themeAddVisible = false">&times;</span>
-                                        </div>
-                                        <div class="title">
-                                            <h3>Добавление темы</h3>
-                                        </div>
-                                        <div class="right"></div>
-                                    </header>
-                                    <main>
-                                        <label>Наименование темы</label><input type="text" v-model="curTheme.title">
-                                        <section class="content-add activity-add" :class="{ 'activity-add-darken': competenceAddVisible }" v-if="activityAddVisible">
-                                            <header>
-                                                <div class="left">
-                                                    <span class="close" @click="activityAddVisible = false">&times;</span>
-                                                </div>
-                                                <div class="title">
-                                                    <h3>Добавление вида деятельности</h3>
-                                                </div>
-                                                <div class="right"></div>
-                                            </header>
-                                            <main>
-                                                <label>Вид деятельности/ОТФ/ТФ</label><input type="text" v-model="curActivity.title">
-                                                <section class="content-add competence-add" v-if="competenceAddVisible">
-                                                    <header>
-                                                        <div class="left">
-                                                            <span class="close" @click="competenceAddVisible = false">&times;</span>
-                                                        </div>
-                                                        <div class="title">
-                                                            <h3>Добавление компетенции</h3>
-                                                        </div>
-                                                        <div class="right"></div>
-                                                    </header>
-                                                    <main>
-                                                        <label>Профессиональная компетенция</label><input type="text" v-model="curCompetence.title">
-                                                        <label>Практический опыт</label><input type="text" v-model="curCompetence.experience">
-                                                        <label>Умение</label><input type="text" v-model="curCompetence.skill">
-                                                        <label>Знание</label><input type="text" v-model="curCompetence.knowledge">
-                                                    </main>
-                                                    <footer>
-                                                        <span class="button" @click="competenceSave()">Сохранить</span>
-                                                        <span class="button" @click="competenceRemove()">Удалить профессиональную компетенцию</span>
-                                                    </footer>
-                                                </section>
-                                            </main>
-                                            <footer>
-                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activitySave()">Сохранить</span>
-                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="competenceAdd(curActivity.id)">Добавить профессиональную компетенцию</span>
-                                                <span class="button" :class="{ 'button-disabled': competenceAddVisible }" @click="activityRemove()">Удалить вид деятельности</span>
-                                            </footer>
-                                        </section>
-                                        <div class="row">
-                                            <div class="col">
-                                                <label>Общая трудоемкость</label><input type="number" v-model="curTheme.labor">
-                                            </div>
-                                            <div class="gap"></div>
-                                            <div class="col">
-                                                <label>Трудоемкость для ППС</label><input type="number" v-model="curTheme.labor_pps">
-                                            </div>
-                                        </div>
-                                        <br>
-                                        <h3><i>Аудиторные учебные занятия:</i></h3>
-                                        <br>
-                                        <div class="row">
-                                            <div class="col">
-                                                <label>Лекции</label><input type="number" v-model="curTheme.lections">
-                                            </div>
-                                            <div class="gap"></div>
-                                            <div class="col">
-                                                <label>Интерактивные занятия</label><input type="number" v-model="curTheme.interactives">
-                                            </div>
-                                        </div>
-                                        <br>
-                                        <h3><i>Внеаудиторные учебные занятия:</i></h3>
-                                        <br>
-                                        <div class="row">
-                                            <div class="col">
-                                                <label>Теоритическая часть</label><input type="number" v-model="curTheme.theory">
-                                            </div>
-                                            <div class="gap"></div>
-                                            <div class="col">
-                                                <label>Практическая часть</label><input type="number" v-model="curTheme.practice">
-                                            </div>
-                                        </div>
-                                        <label for="forms">Формы контроля</label>
-                                        <textarea id="forms" rows="2" v-model="curTheme.controls"></textarea>
-                                        <label for="content">Содержание темы</label>
-                                        <textarea id="content" rows="5" v-model="curTheme.contents"></textarea>
-                                    </main>
-                                    <footer>
-                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeSave()">Сохранить</span>
-                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="activityAdd(curTheme.id)">Добавить вид деятельности</span>
-                                        <span class="button" :class="{ 'button-disabled': activityAddVisible }" @click="themeRemove()">Удалить тему</span>
-                                    </footer>
-                                </section>
-                            </form>
+                            <label>Наименование модуля</label><input type="text" v-model="curModule.title">
                         </main>
                         <footer>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleSave()">Сохранить</span>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="themeAdd(curModule.id)">Добавить тему</span>
-                            <span class="button" :class="{ 'button-disabled': themeAddVisible }" @click="moduleRemove()">Удалить модуль</span>
+                            <span class="button" @click="moduleSave()">Сохранить</span>
+                            <span class="button" @click="themeAdd(curModule.id)">Добавить тему</span>
+                            <span class="button" @click="moduleRemove()">Удалить модуль</span>
                         </footer>
                     </section>
-                </form>
+
+                    <section class="content-add" v-if="themeAddVisible">
+                        <header>
+                            <div class="left">
+                                <span class="close" @click="themeAddVisible = false">&times;</span>
+                            </div>
+                            <div class="title">
+                                <h3>Добавление/редактирование темы</h3>
+                            </div>
+                            <div class="right"></div>
+                        </header>
+                        <main>
+                            <label>Наименование темы</label><input type="text" v-model="curTheme.title">
+                            <div class="row">
+                                <div class="col">
+                                    <label>Общая трудоемкость</label><input type="number" v-model="curTheme.labor">
+                                </div>
+                                <div class="gap"></div>
+                                <div class="col">
+                                    <label>Трудоемкость для ППС</label><input type="number" v-model="curTheme.labor_pps">
+                                </div>
+                            </div>
+                            <br>
+                            <h3><i>Аудиторные учебные занятия:</i></h3>
+                            <br>
+                            <div class="row">
+                                <div class="col">
+                                    <label>Лекции</label><input type="number" v-model="curTheme.lections">
+                                </div>
+                                <div class="gap"></div>
+                                <div class="col">
+                                    <label>Интерактивные занятия</label><input type="number" v-model="curTheme.interactives">
+                                </div>
+                            </div>
+                            <br>
+                            <h3><i>Внеаудиторные учебные занятия:</i></h3>
+                            <br>
+                            <div class="row">
+                                <div class="col">
+                                    <label>Теоритическая часть</label><input type="number" v-model="curTheme.theory">
+                                </div>
+                                <div class="gap"></div>
+                                <div class="col">
+                                    <label>Практическая часть</label><input type="number" v-model="curTheme.practice">
+                                </div>
+                            </div>
+                            <label for="forms">Формы контроля</label>
+                            <textarea id="forms" rows="2" v-model="curTheme.controls"></textarea>
+                            <label for="content">Содержание темы</label>
+                            <textarea id="content" rows="5" v-model="curTheme.contents"></textarea>
+                        </main>
+                        <footer>
+                            <span class="button" @click="themeSave()">Сохранить</span>
+                            <span class="button" @click="activityAdd(curTheme.id)">Добавить вид деятельности</span>
+                            <span class="button" @click="themeRemove()">Удалить тему</span>
+                        </footer>
+                    </section>
+
+                    <section class="content-add" v-if="activityAddVisible">
+                        <header>
+                            <div class="left">
+                                <span class="close" @click="activityAddVisible = false">&times;</span>
+                            </div>
+                            <div class="title">
+                                <h3>Добавление/редактирование вида деятельности</h3>
+                            </div>
+                            <div class="right"></div>
+                        </header>
+                        <main>
+                            <label>Вид деятельности/ОТФ/ТФ</label><input type="text" v-model="curActivity.title">
+                        </main>
+                        <footer>
+                            <span class="button" @click="activitySave()">Сохранить</span>
+                            <span class="button" @click="competenceAdd(curActivity.id)">Добавить профессиональную компетенцию</span>
+                            <span class="button" @click="activityRemove()">Удалить
+                                вид деятельности</span>
+                        </footer>
+                    </section>
+
+                    <section class="content-add" v-if="competenceAddVisible">
+                        <header>
+                            <div class="left">
+                                <span class="close" @click="competenceAddVisible = false">&times;</span>
+                            </div>
+                            <div class="title">
+                                <h3>Добавление/редактирование компетенции</h3>
+                            </div>
+                            <div class="right"></div>
+                        </header>
+                        <main>
+                            <label>Профессиональная компетенция</label><input type="text" v-model="curCompetence.title">
+                            <label>Практический опыт</label><input type="text" v-model="curCompetence.experience">
+                            <label>Умение</label><input type="text" v-model="curCompetence.skill">
+                            <label>Знание</label><input type="text" v-model="curCompetence.knowledge">
+                        </main>
+                        <footer>
+                            <span class="button" @click="competenceSave()">Сохранить</span>
+                            <span class="button" @click="competenceRemove()">Удалить профессиональную компетенцию</span>
+                        </footer>
+                    </section>
+
                 <footer class="creator-main-actions">
-                    <span class="button" :class="{ 'button-disabled': moduleAddVisible }" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить модуль</span>
+                    <span class="button" @click="moduleAdd()" v-if="currentTab === 'construct'">Добавить модуль</span>
                     <span class="button" @click="exportToDoc()" v-if="currentTab === 'result'">Сохранить в формате <code>.doc</code></span>
                 </footer>
             </div>
@@ -220,28 +222,27 @@
                             <th>Умения</th>
                             <th>Знания</th>
                         </tr>
-                        <!-- <template v-for="a in activities" :key="a.index">
+                        <template v-for="a in activities" :key="a.index">
                             <tr>
-                                <td :rowspan="a.data.competencies.length || 1">{{ a.data.title }}</td>
-                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.title }}</td>
+                                <td :rowspan="activityCompetencies(a).length || 1">{{ a.title }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].title }}</td>
                                 <td v-else>—</td>
-                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.experience }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].experience }}</td>
                                 <td v-else>—</td>
-                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.skill }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].skill }}</td>
                                 <td v-else>—</td>
-                                <td v-if="a.data.competencies[0]">{{ a.data.competencies[0].data.knowledge }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].knowledge }}</td>
                                 <td v-else>—</td>
                             </tr>
-                            <template v-for="c in noOneArray(a.data.competencies)" :key="c.index">
+                            <!-- <template v-for="c in noOneArray(activityCompetencies(a.id))" :key="c.index">
                                 <tr>
-                                    <td>{{ c.data.title || '—' }}</td>
-                                    <td>{{ c.data.experience || '—' }}</td>
-                                    <td>{{ c.data.skill || '—' }}</td>
-                                    <td>{{ c.data.knowledge || '—' }}</td>
+                                    <td>{{ c.title || '—' }}</td>
+                                    <td>{{ c.experience || '—' }}</td>
+                                    <td>{{ c.skill || '—' }}</td>
+                                    <td>{{ c.knowledge || '—' }}</td>
                                 </tr>
-                            </template>
-                            
-                        </template> -->
+                            </template> -->
+                        </template>
                     </table>
 
                 </section>
@@ -337,10 +338,10 @@
                         this.relevance = parsedData.relevance;
                         this.target = parsedData.target;
                     }
-                    console.log(this.modules);
-                    console.log(this.themes);
-                    console.log(this.activities);
-                    console.log(this.competencies);
+                    // console.log(this.modules);
+                    // console.log(this.themes);
+                    // console.log(this.activities);
+                    // console.log(this.competencies);
                     window.onbeforeunload = () => {
                     // this.storageSave();
                     };
@@ -369,6 +370,12 @@
                         };
                         localStorage.setItem('headerData', JSON.stringify(tmp));
                     },
+                    closeAll() {
+                        this.moduleAddVisible = false;
+                        this.themeAddVisible = false;
+                        this.activityAddVisible = false;
+                        this.competenceAddVisible = false;
+                    },
                     // ******* Modules *******
                     moduleAdd() {
                         this.curModule.title = '';
@@ -392,6 +399,7 @@
                         }
                     },
                     moduleOpen(module) {
+                        this.closeAll();
                         this.curModule = {...module};
                         this.moduleAddVisible = true;
                     },
@@ -451,8 +459,12 @@
                             this.themeUpdate();
                         }
                     },
-                    themeOpen(theme) {
+                    themeOpen(theme, parent) {
+                        this.closeAll();
                         this.curTheme = {...theme};
+                        if (!this.curTheme.parent_id && parent) {
+                            this.curTheme.parent_id = parent;
+                        }
                         this.themeAddVisible = true;
                     },
                     themeUpdate() {
@@ -503,7 +515,11 @@
                         }
                     },
                     activityOpen(activity) {
+                        this.closeAll();
                         this.curActivity = {...activity};
+                        if (!this.curActivity.parent_id && parent) {
+                            this.curActivity.parent_id = parent;
+                        }
                         this.activityAddVisible = true;
                     },
                     activityUpdate() {
@@ -557,7 +573,11 @@
                         }
                     },
                     competenceOpen(competence) {
+                        this.closeAll();
                         this.curCompetence = {...competence};
+                        if (!this.curCompetence.parent_id && parent) {
+                            this.curCompetence.parent_id = parent;
+                        }
                         this.competenceAddVisible = true;
                     },
                     competenceUpdate() {
@@ -785,31 +805,10 @@
             width: 15px;
         }
 
-        .content-add.module-add.module-add-darken {
-            background: #d6d6d6;
-            pointer-events: none;
-        }
-
-        .content-add.theme-add.theme-add-darken {
-            background: #e4e4e4;
-            pointer-events: none;
-        }
-
-        .content-add.activity-add.activity-add-darken {
-            pointer-events: none;
-            background: #f3f3f3;
-        }
-
-        .content-add.module-add {
-            margin: 15px 0 5px 0;
-        }
-
-        .content-add.module-add,
-        .content-add.theme-add,
-        .content-add.activity-add,
-        .content-add.competence-add {
+        .content-add {
             background: #fdfdfd;
             padding: 0 15px 5px 15px;
+            margin: 15px 0 5px 0;
             margin-bottom: 10px;
             box-shadow: 0 2px 5px #888888;
             pointer-events: all;
@@ -821,17 +820,12 @@
             height: 40px;
         }
 
-        .content-add header {
-            border-top: 1px solid #aaa;
-        }
-
         .content-add footer {
             padding: 5px 15px;
-            border-bottom: 1px solid #aaa;
         }
 
-        .content-add.module-add header,
-        .content-add.module-add footer {
+        .content-add header,
+        .content-add footer {
             border: none;
         }
 
