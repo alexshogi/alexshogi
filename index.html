@@ -224,24 +224,24 @@
                         </tr>
                         <template v-for="a in activities" :key="a.index">
                             <tr>
-                                <td :rowspan="activityCompetencies(a).length || 1">{{ a.title }}</td>
-                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].title }}</td>
+                                <td :rowspan="activityCompetencies(a.id).length || 1">{{ a.title }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].title || '—'}}</td>
                                 <td v-else>—</td>
-                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].experience }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].experience || '—'}}</td>
                                 <td v-else>—</td>
-                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].skill }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].skill || '—'}}</td>
                                 <td v-else>—</td>
-                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].knowledge }}</td>
+                                <td v-if="activityCompetencies(a.id)[0]">{{ activityCompetencies(a.id)[0].knowledge || '—'}}</td>
                                 <td v-else>—</td>
                             </tr>
-                            <!-- <template v-for="c in noOneArray(activityCompetencies(a.id))" :key="c.index">
+                            <template v-for="c in noOneArray(activityCompetencies(a.id))" :key="c.index">
                                 <tr>
                                     <td>{{ c.title || '—' }}</td>
                                     <td>{{ c.experience || '—' }}</td>
                                     <td>{{ c.skill || '—' }}</td>
                                     <td>{{ c.knowledge || '—' }}</td>
                                 </tr>
-                            </template> -->
+                            </template>
                         </template>
                     </table>
 
