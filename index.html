@@ -19,7 +19,7 @@
         <div class="creator-tabs-container">
             <div class="creator-tab tab-construct" :class="{ 'tab-hidden': currentTab === 'result' }">
                 <form action="">
-                    <div v-if="1 === 2">
+                    <div>
                     <label for="title">Название ДПП</label><input type="text" name="title" v-model="title">
                     <label for="authors">Автор/Авторский коллектив</label><input type="text" name="authors" v-model="authors">
                     <div class="row">
@@ -65,16 +65,16 @@
                         <h3>Структура программы</h3>
                         <br>
                         <ul v-if="modules && modules.length">
-                            <li v-for="module in modules" :key="module.index" @click.stop="moduleOpen(module)" :data-module="module.id">
+                            <li class="structure-list-item" v-for="module in modules" :key="module.index" @click.stop="moduleOpen(module)" :data-module="module.id">
                                 {{ module.title }}
                                 <ul v-if="moduleThemes(module.id)">
-                                    <li v-for="theme in moduleThemes(module.id)" :key="theme.index" @click.stop="themeOpen(theme, module.id)" :data-theme="theme.id" :data-parent-id="module.id">
+                                    <li class="structure-list-item" v-for="theme in moduleThemes(module.id)" :key="theme.index" @click.stop="themeOpen(theme, module.id)" :data-theme="theme.id" :data-parent-id="module.id">
                                         {{ theme.title }}
                                         <ul v-if="themeActivities(theme.id)">
-                                            <li v-for="activity in themeActivities(theme.id)" :key="activity.index" @click.stop="activityOpen(activity, theme.id)" :data-activity="activity.id" :data-parent-id="theme.id">
+                                            <li class="structure-list-item" v-for="activity in themeActivities(theme.id)" :key="activity.index" @click.stop="activityOpen(activity, theme.id)" :data-activity="activity.id" :data-parent-id="theme.id">
                                                 {{ activity.title }}
                                                 <ul v-if="activityCompetencies(activity.id)">
-                                                    <li v-for="competence in activityCompetencies(activity.id)" :key="competence.index" @click.stop="competenceOpen(competence, activity.id)" :data-competence="competence.id" :data-parent-id="activity.id">
+                                                    <li class="structure-list-item" v-for="competence in activityCompetencies(activity.id)" :key="competence.index" @click.stop="competenceOpen(competence, activity.id)" :data-competence="competence.id" :data-parent-id="activity.id">
                                                         {{ competence.title }}
                                                     </li>
                                                 </ul>
@@ -96,6 +96,7 @@
                             </div>
                             <div class="right"></div>
                         </header>
+                        <div class="breadcrumbs" v-if="breadCrumbs(curModule.type)">{{ breadCrumbs(curModule.type) }}</div>
                         <main>
                             <label>Наименование модуля</label><input type="text" v-model="curModule.title">
                         </main>
@@ -116,6 +117,7 @@
                             </div>
                             <div class="right"></div>
                         </header>
+                        <div class="breadcrumbs" v-if="breadCrumbs(curTheme.type, curTheme.parent_id)">{{ breadCrumbs(curTheme.type, curTheme.parent_id) }}</div>
                         <main>
                             <label>Наименование темы</label><input type="text" v-model="curTheme.title">
                             <div class="row">
@@ -173,6 +175,7 @@
                             </div>
                             <div class="right"></div>
                         </header>
+                        <div class="breadcrumbs" v-if="breadCrumbs(curActivity.type, curActivity.parent_id)">{{ breadCrumbs(curActivity.type, curActivity.parent_id) }}</div>
                         <main>
                             <label>Вид деятельности/ОТФ/ТФ</label><input type="text" v-model="curActivity.title">
                         </main>
@@ -194,6 +197,7 @@
                             </div>
                             <div class="right"></div>
                         </header>
+                        <div class="breadcrumbs" v-if="breadCrumbs(curCompetence.type, curCompetence.parent_id)">{{ breadCrumbs(curCompetence.type, curCompetence.parent_id) }}</div>
                         <main>
                             <label>Профессиональная компетенция</label><input type="text" v-model="curCompetence.title">
                             <label>Практический опыт</label><input type="text" v-model="curCompetence.experience">
@@ -357,6 +361,37 @@
                     activityCompetencies(id) {
                         return this.competencies.filter(c => c.parent_id === id);
                     },
+                    breadCrumbs(type, parent_id) {
+                        let module = '';
+                        let theme = '';
+                        let activity = '';
+                        let competence = '';
+                        if (type === 'module') {
+                            return this.curModule.title;
+                        }
+                        if (type === 'theme') {
+                            return this.modules.find(m => m.id === parent_id).title + ' → ' + this.curTheme.title;
+                        }
+                        if (type === 'activity') {
+                            let title = this.curActivity.title;
+                            let theme = this.themes.find(t => t.id === parent_id);
+                            let themeTitle = theme.title;
+                            let module = this.modules.find(m => m.id === theme.parent_id);
+                            moduleTitle = module.title;
+                            return moduleTitle + ' → ' + themeTitle + ' → ' + title;
+                        }
+                        if (type === 'competence') {
+                            let title = this.curCompetence.title;
+                            let activity = this.activities.find(a => a.id === parent_id);
+                            let activityTitle = activity.title;
+                            let theme = this.themes.find(t => t.id === activity.parent_id);
+                            let themeTitle = theme.title;
+                            let module = this.modules.find(m => m.id === theme.parent_id);
+                            let moduleTitle = module.title;
+                            return moduleTitle + ' → ' + themeTitle + ' → ' + activityTitle + ' → ' + title;
+                        }
+                        return false;
+                    },
                     ///////
                     storageSave() {
                         localStorage.setItem('items', JSON.stringify(this.items) || []);
@@ -378,6 +413,7 @@
                     },
                     // ******* Modules *******
                     moduleAdd() {
+                        this.closeAll();
                         this.curModule.title = '';
                         this.curModule.id = Date.now();
                         this.moduleAddVisible = true;
@@ -419,8 +455,8 @@
                         let ask = confirm('Вы уверены?');
                         if (ask) {
                             let index = this.items.map(i => {
-                                return i.index
-                            }).indexOf(this.curModule.index);
+                                return i.id
+                            }).indexOf(this.curModule.id);
                             if (index > -1) {
                                 this.items.splice(index, 1);
                                 this.storageSave();
@@ -430,6 +466,7 @@
                     },
                     // ******* Themes *******
                     themeAdd(moduleId) {
+                        this.closeAll();
                         this.curTheme.title = '';
                         this.curTheme.labor = 0;
                         this.curTheme.labor_pps = 0;
@@ -482,8 +519,8 @@
                         let ask = confirm('Вы уверены?');
                         if (ask) {
                             let index = this.items.map(i => {
-                                return i.index
-                            }).indexOf(this.curTheme.index);
+                                return i.id
+                            }).indexOf(this.curTheme.id);
                             if (index > -1) {
                                 this.items.splice(index, 1);
                                 this.storageSave();
@@ -493,6 +530,7 @@
                     },
                     // ******* Activities *******
                     activityAdd(themeId) {
+                        this.closeAll();
                         this.curActivity.title = '';
                         this.curActivity.id = Date.now();
                         this.curActivity.parent_id = themeId;
@@ -537,8 +575,8 @@
                         let ask = confirm('Вы уверены?');
                         if (ask) {
                             let index = this.items.map(i => {
-                                return i.index
-                            }).indexOf(this.curActivity.index);
+                                return i.id
+                            }).indexOf(this.curActivity.id);
                             if (index > -1) {
                                 this.items.splice(index, 1);
                                 this.storageSave();
@@ -548,6 +586,7 @@
                     },
                     // ******* Competencies *******
                     competenceAdd(activityId) {
+                        this.closeAll();
                         this.curCompetence.title = '';
                         this.curCompetence.experience = '';
                         this.curCompetence.skill = '';
@@ -595,8 +634,8 @@
                         let ask = confirm('Вы уверены?');
                         if (ask) {
                             let index = this.items.map(i => {
-                                return i.index
-                            }).indexOf(this.curCompetence.index);
+                                return i.id
+                            }).indexOf(this.curCompetence.id);
                             if (index > -1) {
                                 this.items.splice(index, 1);
                                 this.storageSave();
@@ -850,6 +889,10 @@
             justify-content: center;
         }
 
+        .content-add header .breadcrumbs {
+            flex: 1;
+        }
+
         .content-add header .close {
             color: #da251d;
             font-size: 28px;
@@ -873,15 +916,8 @@
             padding-top: 10px;
         }
 
-        .module,
-        .theme {
+        .modules ul li {
             cursor: pointer;
-            color: rgb(49, 49, 230);
-        }
-
-        .module:hover,
-        .theme:hover {
-            color: rgb(22, 22, 223);
         }
 
         .result table th,
